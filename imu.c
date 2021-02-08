@@ -17,7 +17,7 @@
 #define GYRO_YOUT_H    0x45
 #define GYRO_ZOUT_H    0x47
 
-void Kalman(float*, float*, float*, float*);
+void Kalman(float *, float *, float *, float *);
 
 int fd;
 
@@ -41,9 +41,14 @@ short read_raw_data(int addr){
 
 }
 
-void Kalman(float *paccX, float *paccY, float *pgyroX, float *gyroY) {
+void Kalman(float *paX, float *paY, float *pgX, float *pgY) {
+
 	float sum;
-	sum = *paccX
+	sum = paX + paY + pgX + pgY;
+	printf("%.3f\n", sum);
+
+
+
 
 }
 
@@ -55,6 +60,15 @@ float Acc_x,  Acc_y,  Acc_z;
 float Gyro_x, Gyro_y, Gyro_z;
 float Ax = 0, Ay = 0,  Az = 0;
 float Gx = 0, Gy = 0,  Gz = 0;
+float* pAx; 
+float* pAy;
+float* pGx;
+float* pGy;
+pAx = &Ax;
+pAy = &Ay;
+pGx = &Gx;
+pGy = &Gy;
+
 fd = wiringPiI2CSetup(Device_Address);
 MPU6050_Init();
 
