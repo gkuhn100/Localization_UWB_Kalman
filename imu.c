@@ -17,6 +17,8 @@
 #define GYRO_YOUT_H    0x45
 #define GYRO_ZOUT_H    0x47
 
+void Kalman(float*, float*, float*, float*);
+
 int fd;
 
 
@@ -39,7 +41,11 @@ short read_raw_data(int addr){
 
 }
 
+void Kalman(float *paccX, float *paccY, float *pgyroX, float *gyroY) {
+	float sum;
+	sum = *paccX
 
+}
 
 
 int main(){
