@@ -89,7 +89,9 @@ Gx = Acc_x/131;
 Gy = Acc_y/131;
 Gz = Acc_z/131;
 
-printf("Ax = %.3f g, Ay = %.3f g, Gx = %.3f d/s, Gy = %.3f d/s\n", Ax, Ay, Gx, Gy);
+Kalman(*pAx, *paY, *pgX, *pgY);
+
+//printf("Ax = %.3f g, Ay = %.3f g, Gx = %.3f d/s, Gy = %.3f d/s\n", Ax, Ay, Gx, Gy);
 
 delay(1000);
 
