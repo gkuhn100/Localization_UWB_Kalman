@@ -105,7 +105,7 @@ void getInput(float* accX, float* accY, float* accZ, float* gyroX, float* gyroY,
     *gyroY = Gy;
     *gyroZ = Gz;
 
-    printf("\n Gx=%.3f °/s\tGy=%.3f °/s\tGz=%.3f °/s\tAx=%.3f g\tAy=%.3f g\tAz=%.3f g\n", Gx, Gy, Gz, Ax, Ay, Az);
+    printf("\n Gx=%.3f Â°/s\tGy=%.3f Â°/s\tGz=%.3f Â°/s\tAx=%.3f g\tAy=%.3f g\tAz=%.3f g\n", Gx, Gy, Gz, Ax, Ay, Az);
 
 }
 
@@ -128,8 +128,5 @@ int main(void)
 
     return 0;
 }
-
-
-
 
 
