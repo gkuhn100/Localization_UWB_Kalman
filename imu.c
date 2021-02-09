@@ -17,9 +17,10 @@
 #define GYRO_YOUT_H    0x45
 #define GYRO_ZOUT_H    0x47
 
-void Kalman(float *, float *, float *, float *);
-
 int fd;
+
+void getInput(float*, float*, float*, float*);
+void Kalman(float*, float*, float*, float*, int, int, int);
 
 
 void MPU6050_Init(){
@@ -41,61 +42,63 @@ short read_raw_data(int addr){
 
 }
 
-void Kalman(float *paX, float *paY, float *pgX, float *pgY) {
+void getInput(float *accX, float *accY, float *accZ, float *gyroX, float *gyroY, float *gyroZ) {
+	float Acc_x, Acc_y, Acc_z;
+	float Gyro_x, Gyro_y, Gyro_z;
+	float Ax = 0, Ay = 0, Az = 0;
+	float Gx = 0, Gy = 0, Gz = 0;
 
-	float sum;
-	sum = paX + paY + pgX + pgY;
-	printf("%.3f\n", sum);
+	fd = wiringPiI2CSetup(Device_Address);
+	MPU6050_Init();
 
 
 
+	while (1) {
+		Acc_x = read_raw_data(ACCEL_XOUT_H);
+		Acc_y = read_raw_data(ACCEL_YOUT_H);
+		Acc_z = read_raw_data(ACCEL_ZOUT_H);
+
+		Gyro_x = read_raw_data(GYRO_XOUT_H);
+		Gyro_y = read_raw_data(GYRO_YOUT_H);
+		Gyro_z = read_raw_data(GYRO_ZOUT_H);
+
+		Ax = Acc_x / 16384.0;
+		Ay = Acc_y / 16384.0;
+		Az = Acc_z / 16384.0;
+
+		Gx = Acc_x / 131;
+		Gy = Acc_y / 131;
+		Gz = Acc_z / 131;
+
+		*accX = &Ax;
+		*accY = &Ay;
+		*accZ = &Az;
+
+		*gyroX = &Gx;
+		*gyroY = &Gy;
+		*gyroZ = &Gz;
+
+		printf("%.3f\n", *accX);
+		printf("%.3f\n", *accY);
+		printf("%.3f\n", *accZ);
+
+		printf("%.3f\n", *gyroX);
+		printf("%.3f\n", *gyroY);
+		printf("%.3f\n", *gyroZ);
+		
+	}
 
 }
+
 
 
 int main(){
 
 
-float Acc_x,  Acc_y,  Acc_z;
-float Gyro_x, Gyro_y, Gyro_z;
-float Ax = 0, Ay = 0,  Az = 0;
-float Gx = 0, Gy = 0,  Gz = 0;
-float* pAx; 
-float* pAy;
-float* pGx;
-float* pGy;
-pAx = &Ax;
-pAy = &Ay;
-pGx = &Gx;
-pGy = &Gy;
-
-fd = wiringPiI2CSetup(Device_Address);
-MPU6050_Init();
-
-while(1){
-Acc_x = read_raw_data(ACCEL_XOUT_H);
-Acc_y = read_raw_data(ACCEL_YOUT_H);
-Acc_z = read_raw_data(ACCEL_ZOUT_H);
-
-Gyro_x = read_raw_data(GYRO_XOUT_H);
-Gyro_y = read_raw_data(GYRO_YOUT_H);
-Gyro_z = read_raw_data(GYRO_ZOUT_H);
-
-Ax = Acc_x/16384.0;
-Ay = Acc_y/16384.0;
-Az = Acc_z/16384.0;
-
-Gx = Acc_x/131;
-Gy = Acc_y/131;
-Gz = Acc_z/131;
-
-Kalman(*pAx, *paY, *pgX, *pgY);
-
-//printf("Ax = %.3f g, Ay = %.3f g, Gx = %.3f d/s, Gy = %.3f d/s\n", Ax, Ay, Gx, Gy);
+getInput(&aX, &aY, &aZ, &gyroX, &gyroY, &gyroZ);
 
 delay(1000);
 
-}
 
 return(0);
 }
