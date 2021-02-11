@@ -96,18 +96,18 @@ void getInput() {
     Gy = Gyro_y / 131;
     Gz = Gyro_z / 131;
 
-    
-    printf("\n Gx=%.3f °/s\tGy=%.3f °/s\tGz=%.3f °/s\tAx=%.3f g\tAy=%.3f g\tAz=%.3f g\n", Gx, Gy, Gz, Ax, Ay, Az);
+    printf("\nThe IMU data is Below\n");
+    printf("\nGx=%.3f °/s  Gy=%.3f  Ax=%.3f g  Ay=%.3f g\n\n", Gx, Gy, Ax, Ay);
 
 }
 
 int main(void)
 {
    int i;
+   int time = 0;
    int wait_period = 1000;
    dwm_cfg_tag_t cfg_tag;
    dwm_cfg_t cfg_node;
-
    HAL_Print("dwm_init(): dev%d\n", HAL_DevNum());
    dwm_init();
 
@@ -154,21 +154,25 @@ int main(void)
    loc.p_pos = &pos;
    while(1)
    {
-      HAL_Print("Wait %d ms...\n", wait_period);
+      HAL_Print("\nWait %d ms...\n\n", wait_period);
       HAL_Delay(wait_period);
+      printf("At time %d\n", time);
+      getInput();
+      time = time + 1; 
 
-      HAL_Print("dwm_loc_get(&loc):\n");
 
       if(dwm_loc_get(&loc) == RV_OK)
+
       {
-         HAL_Print("\t[%d,%d,%d,%u]\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
+	 HAL_Print("The position of the Bridge node is\n");
+         HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
-        HAL_Print("WAS THE TAG UP THER\n\n\n");
+        HAL_Print("The position of the Anchor nodes are\n\n");
 
          for (i = 0; i < loc.anchors.dist.cnt; ++i)
          {
             HAL_Print("\t%u)", i);
-            HAL_Print("0x%llx", loc.anchors.dist.addr[i]);
+            HAL_Print("%1x", loc.anchors.dist.addr[i]);
             if (i < loc.anchors.an_pos.cnt)
             {
                HAL_Print("[%d,%d,%d,%u]", loc.anchors.an_pos.pos[i].x,
