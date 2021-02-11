@@ -96,7 +96,7 @@ void getInput() {
     Gy = Gyro_y / 131;
     Gz = Gyro_z / 131;
 
-    printf("\nThe IMU data is Below\n");
+    printf("\nThe IMU data is \n");
     printf("\nGx=%.3f °/s  Gy=%.3f  Ax=%.3f g  Ay=%.3f g\n\n", Gx, Gy, Ax, Ay);
 
 }
