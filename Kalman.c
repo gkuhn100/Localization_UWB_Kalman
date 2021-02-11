@@ -172,7 +172,7 @@ int main(void)
          for (i = 0; i < loc.anchors.dist.cnt; ++i)
          {
             HAL_Print("\t%u)", i);
-            HAL_Print("%1x", loc.anchors.dist.addr[i]);
+            HAL_Print("0x%llx", loc.anchors.dist.addr[i]);
             if (i < loc.anchors.an_pos.cnt)
             {
                HAL_Print("[%d,%d,%d,%u]", loc.anchors.an_pos.pos[i].x,
