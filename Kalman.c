@@ -1,6 +1,8 @@
 /*! ------------------------------------------------------------------------------------------------------------------
- * @file    tag_cfg.c
- * @brief   Decawave device configuration and control functions
+ * @file    kalman.c
+ * @brief   This Program combines the Decawave measurment and control functions with 
+ *          Acceleration and measurment data recorded from an IMU to make a more accurate prediction 
+ *          of the Bridge nodes current state with use of a Kalman Filter
  *
  * @attention
  *
@@ -18,7 +20,9 @@
 #include <wiringPi.h>
 
 #define Device_Address 0x68 /*Device Address Identifier for MPU6050*/
-
+#define SIZE 2
+#define ROW  2
+#define COL  1
 
 #define PWR_MGMT_1   0x6B 
 #define SMPLRT_DIV   0x19 
@@ -34,8 +38,14 @@
 
 int fd;
 
-void getInput();
-void Kalman(float, float, float, float, float, float, int *, int *, int *);
+void  getInput();
+float predictState(float[SIZE][SIZE], float[SIZE][SIZE], int);
+float processCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
+float measurement(float[ROW][COL], int i);
+float KalmanGain(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], int i);
+float updateState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], int i);
+float updateprocess(float[SIZE][SIZE], float[SIZE][SIZE], int i);
+
 
 /* This function initialzes the registers used by the MPU6050 IMU
 */
@@ -50,7 +60,7 @@ void MPU6050_Init() {
 
 }
 
-/* This function creates an argument for reading in requisite data
+/* This function creates an argument for reading in values
 *  from the IMU and returns that value as a short
 */
 
@@ -66,7 +76,7 @@ short read_raw_data(int addr) {
 /* This function call the read_raw_datas function
 *   to read in the data from the IMU, and then converts
 *   that data to the acceleration in g/s or orientation
-*   in d/s
+*   in d/s respectively
 */
 
 void getInput() {
@@ -187,3 +197,12 @@ int main(void)
 
    return 0;
 }
+
+
+float(float A[SIZE][SIZE], float X[ROW][COL], int i){
+
+float sum = 0.0;
+
+
+}
+
