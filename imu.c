@@ -35,8 +35,8 @@
 
 int fd;
 
-void getInput(float*, float*, float*, float*, float*, float*);
-void Kalman(float*, float*, float*, float*, float*, float*, int, int);
+void getInput();
+void Kalman(float , float, float, float, float, float, int, int,int);
 
 /* This function initialzes the registers used by the MPU6050 IMU
 */
@@ -70,7 +70,7 @@ short read_raw_data(int addr) {
 *   in d/s
 */
 
-void getInput(float* accX, float* accY, float* accZ, float* gyroX, float* gyroY, float* gyroZ) {
+void getInput() {
     float Acc_x, Acc_y, Acc_z;
     float Gyro_x, Gyro_y, Gyro_z;
     float Ax, Ay, Az;
@@ -97,19 +97,13 @@ void getInput(float* accX, float* accY, float* accZ, float* gyroX, float* gyroY,
     Gy = Gyro_y / 131;
     Gz = Gyro_z / 131;
 
-    *accX = Ax;
-    *accY = Ay;
-    *accZ = Az;
-
-    *gyroX = Gx;
-    *gyroY = Gy;
-    *gyroZ = Gz;
 
     printf("\n Gx=%.3f °/s\tGy=%.3f °/s\tGz=%.3f °/s\tAx=%.3f g\tAy=%.3f g\tAz=%.3f g\n", Gx, Gy, Gz, Ax, Ay, Az);
 
 }
 
-void Kalman(float* accX, float* accY, float* accZ, float* gyroX, float* gyroY, float* gyroZ, int posX, int posY, int PosZ) {
+void Kalman(float Ax, float Ay, float Az, float Gx, float Gy, float Gz, int Posx, int Posy, int Posz) {
+    float dT = 1.0;
     int i, j, k;
 
 }
@@ -122,7 +116,7 @@ int main(void)
 
     while (1)
     {
-        getInput(&ax, &ay, &az, &gx, &gy, &gz);
+        getInput();
         delay(1000);
     }// conditional loop 
 
