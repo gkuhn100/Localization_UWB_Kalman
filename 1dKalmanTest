@@ -1,0 +1,143 @@
+#include <iostream>
+#include <math.h>
+#define SIZE 2
+#define ROW  2
+#define COL  1
+
+using namespace std;
+
+
+/* This program covers the complete implementation of a Kalman filter;
+* It covers all seven steps of it. This specific example is used for an airplane tracking
+* example, with 5 velocity and position measurements across constant time intervals and a
+* constant accelerartion. It will only be for one dimension the x.
+* Furthermore this program was created with the use of functions
+*
+*/
+
+float predictState(float [SIZE][SIZE], float[ROW][COL], float[ROW][COL], int, int);
+float processCOV(float[SIZE][SIZE], float[SIZE][SIZE], float[SIZE][SIZE]);
+float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE], int i);
+float CurrentState(float[ROW][COL], float [ROW][COL], float[SIZE][SIZE], float[SIZE][SIZE], int);
+float UpdateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
+
+
+int main() {
+
+	float pos[5] = { 4000, 4260, 4550, 4860, 5110 };
+	float vel[5] = { 280, 282, 285, 286, 290 };
+	float X[ROW][COL] = { {pos[0]}, {vel[0]} };
+	float Y[ROW][COL] = { {0}, {0} };
+	float PC[2][2] = { {400,0},{0,25} };
+	float   A[SIZE][SIZE] = { {1,1}, {0,1} };
+	float   AT[SIZE][SIZE] = { {1,0}, {1,1} };
+	float   B[SIZE][1] = { {.5},{1} };
+	float   H[SIZE][SIZE] = { {1,0}, {0,1} };
+	float PCtemp[SIZE][SIZE] = { {0,0},{0,0} };
+	float R[SIZE][SIZE] = { {625,0}, {0,36} };
+	int k;
+	int acc = 2;
+	float sum;
+	float temp;
+	float KG[2][2] = { {0,0},{0,0} };
+	k = 1;
+	int i;
+	int j;
+	int m;
+	int n;
+
+	sum = 0.0;
+	temp = 0.0;
+
+	
+
+	while (k < 4) {
+
+	//Predictive State 
+	 for (i = 0; i < SIZE; i++){
+		 X[i][0] = predictState(A, X, B, acc, i);
+		 //cout << X[i][0] << endl;
+	}
+
+
+	//Predictive Process Covariance Matrix
+	 PC[0][0] = processCOV(A, PC, AT);
+	
+
+	 // Kalman Gain
+	 for (i = 0; i < SIZE; i++) {
+		 KG[i][i] = KalmanGain(PC, R, i);
+	 }
+	 
+	 // Observation Matrix
+
+	 Y[0][0] = pos[k];
+	 Y[1][0] = vel[k];
+
+	 // Current State
+	 for (i = 0; i < SIZE; i++) {
+		 X[i][0] = CurrentState(X,Y,KG,H,i);
+		cout << X[i][0] << endl;
+	 }
+
+	 // Process Covariance Update
+	 for (i = 0; i < SIZE; i++) {
+		 PC[i][i] = UpdateCOV(PC, KG, i);
+		// cout << PC[i][i] << endl;
+	 }
+	
+		k++;
+	}//conditional loop
+
+	return(0);
+}
+
+float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], int ax, int i) {
+	float sum;
+	int j;
+	sum = 0.0;
+
+	for (j = 0; j < SIZE; j++) {
+		sum = a[i][j] * x[j][0] + sum;
+	}
+	sum = sum + b[i][0] * ax;
+	return(sum);
+}
+
+float processCOV(float a[SIZE][SIZE], float pc[SIZE][SIZE], float at[SIZE][SIZE]) {
+	float sum;
+	sum = pc[0][0] + pc[1][1];
+
+	return(sum);
+}
+
+float KalmanGain(float pc[SIZE][SIZE], float r[SIZE][SIZE], int i) {
+	float sum;
+
+		sum = pc[i][i] / (r[i][i] + pc[i][i]);
+	
+	return(sum);
+}
+
+
+float CurrentState(float x[ROW][COL],float y[ROW][COL],float kg[SIZE][SIZE], float h[SIZE][SIZE], int i) {
+	float sum = 0;
+	int j;
+	for (j = 0; j < ROW; j++) {
+		sum = h[i][j] * x[j][0] + sum;
+	}
+	
+	sum = y[i][0] - sum;
+
+	sum = x[i][0] + kg[i][i] * sum;
+	return(sum);
+}
+
+float UpdateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i) {
+	float sum;
+
+	sum = (1 - kg[i][i]) * pc[i][i];
+
+	return(sum);
+
+}
