@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <wiringPi.h>
+#include <math.h>
 
 #define Device_Address 0x68 /*Device Address Identifier for MPU6050*/
 #define SIZE 2
@@ -38,13 +39,13 @@
 
 int fd;
 
-void  getInput();
-float predictState(float[SIZE][SIZE], float[SIZE][SIZE], int);
-float processCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
-float measurement(float[ROW][COL], int i);
-float KalmanGain(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], int i);
-float updateState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], int i);
-float updateprocess(float[SIZE][SIZE], float[SIZE][SIZE], int i);
+
+float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float, int);
+float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], int,  int);
+float measurement(float[ROW][COL], int);
+float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
+float CurrentState(float[ROW][COL], float[ROW][COL], float[SIZE][SIZE],float[SIZE][SIZE], int);
+float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 
 
 /* This function initialzes the registers used by the MPU6050 IMU
@@ -79,43 +80,35 @@ short read_raw_data(int addr) {
 *   in d/s respectively
 */
 
-void getInput() {
-    float Acc_x, Acc_y, Acc_z;
-    float Gyro_x, Gyro_y, Gyro_z;
-    float Ax, Ay, Az;
-    float Gx, Gy, Gz;
 
 
-    fd = wiringPiI2CSetup(Device_Address);
-    MPU6050_Init();
 
-    Acc_x = read_raw_data(ACCEL_XOUT_H);
-    Acc_y = read_raw_data(ACCEL_YOUT_H);
-    Acc_z = read_raw_data(ACCEL_ZOUT_H);
-
-    Gyro_x = read_raw_data(GYRO_XOUT_H);
-    Gyro_y = read_raw_data(GYRO_YOUT_H);
-    Gyro_z = read_raw_data(GYRO_ZOUT_H);
-
-
-    Ax = Acc_x / 16384.0;
-    Ay = Acc_y / 16384.0;
-    Az = Acc_z / 16384.0;
-
-    Gx = Gyro_x / 131;
-    Gy = Gyro_y / 131;
-    Gz = Gyro_z / 131;
-
-    printf("\nThe IMU data is \n");
-    printf("\nGx=%.3f °/s  Gy=%.3f  Ax=%.3f g  Ay=%.3f g\n\n", Gx, Gy, Ax, Ay);
-
-}
 
 int main(void)
 {
    int i;
+   int j;
    int time = 0;
    int wait_period = 1000;
+   float dT   = 1;
+   float Acc_x, Acc_y, Acc_z;
+   float Gyro_x, Gyro_y, Gyro_z;
+   float Ax, Ay, Az;
+   float Gx, Gy, Gz;
+   float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };
+   float AT[SIZE][SIZE] = { {1,0}, {1,1}  };
+   float B[ROW][COL] = {  {.5} , {.5} };
+   float I[SIZE][SIZE] = { {1,0}, {0,1}  };
+   float R[SIZE][SIZE] = { {.2,0}, {0,.1}  };
+   float X[ROW][COL]  = { {0}, {0} };	 
+   float PC[SIZE][SIZE]  = { {400,0}, {0,25} };
+   float KG[2][2] = { {0,0}, {0,0}  };
+   float Y[ROW][COL] = { {0}, {0} };
+   float temp = 0.0;
+
+   fd = wiringPiI2CSetup(Device_Address);
+   MPU6050_Init();
+
    dwm_cfg_tag_t cfg_tag;
    dwm_cfg_t cfg_node;
    HAL_Print("dwm_init(): dev%d\n", HAL_DevNum());
@@ -162,19 +155,45 @@ int main(void)
    dwm_loc_data_t loc;
    dwm_pos_t pos;
    loc.p_pos = &pos;
+   
+  
+  
    while(1)
    {
+      
+
+
+       Acc_x = read_raw_data(ACCEL_XOUT_H);
+       Acc_y = read_raw_data(ACCEL_YOUT_H);
+       Acc_z = read_raw_data(ACCEL_ZOUT_H);
+
+       Gyro_x = read_raw_data(GYRO_XOUT_H);
+       Gyro_y = read_raw_data(GYRO_YOUT_H);
+       Gyro_z = read_raw_data(GYRO_ZOUT_H);
+
+
+       Ax = Acc_x / 16384.0;
+       Ay = Acc_y / 16384.0;
+       Az = Acc_z / 16384.0;
+
+       Gx = Gyro_x / 131;
+       Gy = Gyro_y / 131;
+       Gz = Gyro_z / 131;
+
+
       HAL_Print("\nWait %d ms...\n\n", wait_period);
       HAL_Delay(wait_period);
-      printf("At time %d\n", time);
-      getInput();
-      time = time + 1; 
-
+      printf("At time %d\n", time);      
+      printf("\nThe IMU data is \n");
+      printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
+      
 
       if(dwm_loc_get(&loc) == RV_OK)
 
       {
+
 	 HAL_Print("The position of the Bridge node is\n");
+	 printf("%d\n", loc.p_pos->x);
          HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
         HAL_Print("The position of the Anchor nodes are\n\n");
@@ -185,7 +204,7 @@ int main(void)
             HAL_Print("0x%llx", loc.anchors.dist.addr[i]);
             if (i < loc.anchors.an_pos.cnt)
             {
-               HAL_Print("[%d,%d,%d,%u]", loc.anchors.an_pos.pos[i].x,
+                     HAL_Print("[%d,%d,%d,%u]", loc.anchors.an_pos.pos[i].x,
                      loc.anchors.an_pos.pos[i].y,
                      loc.anchors.an_pos.pos[i].z,
                      loc.anchors.an_pos.pos[i].qf);
@@ -193,16 +212,138 @@ int main(void)
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
       }
+     
+      time = time + 1;
+     
+      //Predictive State
+
+    for (i = 0; i < SIZE; i++){
+     X[i][0] = predictState(A,X,B, Ax, i);
+      printf("The predicted state values are %.3lf\n", X[i][0]);
+
+    }
+
+    for ( i = 0; i < SIZE; i++) {
+    for ( j = 0; j < SIZE; j++) {
+	   temp = processCOV(A, PC, AT, i, j);
+	   PC[i][j] = temp;
+    }
+
+   temp = 0.0;
+
+    } 
+
+    for ( i = 0; i < SIZE; i++){
+    for ( j = 0; j < SIZE; j++){
+	    temp = processCOV(PC, AT, A, i, j);
+	    if ( i  == j){
+		    PC[i][j] = temp;
+		  }
+	  else {
+
+	
+	   PC[i][j] = 0.0;
+	  }
+	}
+    temp = 0.0;
+    }
+
+   // Kalman Gain
+   
+   for (i = 0; i < SIZE; i++){
+    KG[i][i] = KalmanGain(PC, R, i);
+
    }
 
+   // Observation Matrix
+
+   Y[0][0] = loc.p_pos->x;
+   Y[1][0] = X[1][0];
+
+   }
+
+   //Conditiional Loop
+   for (i = 0; i < SIZE; i++){
+   X[i][0] = CurrentState(X,Y,KG,I,i);
+
+   }
+
+   for (i = 0; i < SIZE; i++){
+   PC[i][i] = updateCOV(PC, KG, i);
+
+   }
+ 
    return 0;
 }
 
 
-float(float A[SIZE][SIZE], float X[ROW][COL], int i){
+float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float accX, int i){
 
-float sum = 0.0;
+float sum;
+int j;
 
+sum = 0.0;
+
+for (j = 0; j < SIZE; j++){
+
+  sum = a[i][j] * x[j][0] + sum;
 
 }
 
+sum = sum + b[i][0] * accX;
+
+return(sum);
+}
+
+
+
+float processCOV(float a[SIZE][SIZE], float pc[SIZE][SIZE], float at[SIZE][SIZE], int i,int j){
+
+float sum;
+int k;
+sum = 0.0;
+
+for ( k = 0; k < SIZE; k++){
+sum = a[i][k] * pc[k][j] + sum;
+
+   }
+
+ return(sum);
+
+}
+
+float KalmanGain(float pc[SIZE][SIZE], float r[SIZE][SIZE], int i){
+float sum;
+
+sum = pc[i][i] / (r[i][i] + pc[i][i]);
+
+return(sum);
+
+}
+
+
+float CurrentState(float x[ROW][COL], float y[ROW][COL], float kg[SIZE][SIZE], float I[SIZE][SIZE], int i){
+
+float sum = 0;
+int j;
+
+for ( j = 0; j < ROW; j++) {
+sum = I[i][j] * x[j][0] + sum;
+}
+
+sum = y[i][0] - sum;
+
+sum = x[i][0] + kg[i][i] * sum;
+
+return(sum);
+
+}
+
+float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
+float sum;
+
+sum = (1- kg[i][i]) * pc[i][i];
+
+return(sum);
+
+}
