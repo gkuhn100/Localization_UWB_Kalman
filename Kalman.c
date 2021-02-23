@@ -40,7 +40,7 @@
 int fd;
 
 
-float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float, int);
+float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[ROW][SIZE], float, int);
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
@@ -113,6 +113,7 @@ int main(void)
    float PC[SIZE][SIZE]  = { {400,0}, {0,25} }; // Process Covariance Matrix
    float KG[2][2] = { {0,0}, {0,0}  };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0}, {0} };          // Observation matrix
+   float W[ROW][SIZE] = {-.05, -.05}        //Error in Prediction
    float temp = 0.0;
 
    fd = wiringPiI2CSetup(Device_Address);
@@ -225,9 +226,11 @@ int main(void)
       //Predictive State
 
     for (i = 0; i < SIZE; i++){
-     X[i][0] = predictState(A,X,B, Ax, i);
+     X[i][0] = predictState(A,X,B,W,Ax,i);
       printf("The predicted state values are %.3lf\n", X[i][0]);
        }
+
+       // processCOVaraince
 
     for ( i = 0; i < SIZE; i++) {
         for ( j = 0; j < SIZE; j++) {
@@ -282,7 +285,7 @@ int main(void)
 /* This function Predictes the next state based on the previous state and control
    Variable matrix.
 */
-float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float accX, int i){
+float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][SIZE], float accX, int i){
 
   int j;
   float sum;
@@ -293,6 +296,7 @@ float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], fl
     }
 
    sum = sum + b[i][0] * accX;
+   sum = sum + w[i][0];
 return(sum);
 }
 
