@@ -1,8 +1,8 @@
 /*! ------------------------------------------------------------------------------------------------------------------
  * @file    kalman.c
- * @brief   This Program combines the Decawave measurment and control functions with 
- *          Acceleration and measurment data recorded from an IMU to make a more accurate prediction 
- *          of the Bridge nodes current state with use of a Kalman Filter
+ * @brief   This Program combines the Decawave measurment and control functions with
+ *          Acceleration and measurment data recorded from an IMU to make a more accurate prediction
+ *          of the Decawave's Bridge Module current state with utilization of a Kalman Filter
  *
  * @attention
  *
@@ -25,8 +25,8 @@
 #define ROW  2
 #define COL  1
 
-#define PWR_MGMT_1   0x6B 
-#define SMPLRT_DIV   0x19 
+#define PWR_MGMT_1   0x6B
+#define SMPLRT_DIV   0x19
 #define CONFIG       0x1A
 #define GYRO_CONFIG  0x1B
 #define INT_ENABLE   0x38
@@ -61,7 +61,7 @@ void MPU6050_Init() {
 
 }
 
-/* This function creates an argument for reading in values
+/* This function creates an argument for reading in the measurments
 *  from the IMU and returns that value as a short
 */
 
@@ -77,11 +77,20 @@ short read_raw_data(int addr) {
 /* This function call the read_raw_datas function
 *   to read in the data from the IMU, and then converts
 *   that data to the acceleration in g/s or orientation
-*   in d/s respectively
+*   in d/s(in either the x,y, or z dimensions) respectively
 */
 
+/* Main Function. In this code it serves several vital tasks.
+The first is accessing and displaying the Decawave's position.
+This includes both the anchor and bridge modules.This code was taken from
+the tag_cfg.c code already written by Decawave engineers.In addition code has-
+been added into read in the 3D acceleration and orientation from the MPU6050 IMU.
+Finally, a Kalman Filter has been added to combine these measurements to form a
+more accurate predictided state. That being the Decawave bridge's position and
+velocity. This process was rather complicated and needed to be broken down into
+multiple steps.
 
-
+*/
 
 
 int main(void)
@@ -95,15 +104,15 @@ int main(void)
    float Gyro_x, Gyro_y, Gyro_z;
    float Ax, Ay, Az;
    float Gx, Gy, Gz;
-   float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };
-   float AT[SIZE][SIZE] = { {1,0}, {1,1}  };
-   float B[ROW][COL] = {  {.5} , {.5} };
-   float I[SIZE][SIZE] = { {1,0}, {0,1}  };
-   float R[SIZE][SIZE] = { {.2,0}, {0,.1}  };
-   float X[ROW][COL]  = { {0}, {0} };	 
-   float PC[SIZE][SIZE]  = { {400,0}, {0,25} };
-   float KG[2][2] = { {0,0}, {0,0}  };
-   float Y[ROW][COL] = { {0}, {0} };
+   float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };  // A Matrix
+   float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
+   float B[ROW][COL] = {  {.5} , {.5} };       // B matrix
+   float I[SIZE][SIZE] = { {1,0}, {0,1}  };    // Identity Matrix
+   float R[SIZE][SIZE] = { {.2,0}, {0,.1}  };  // measurment error Matrix
+   float X[ROW][COL]  = { {0}, {0} };	         // State Matrix
+   float PC[SIZE][SIZE]  = { {400,0}, {0,25} }; // Process Covariance Matrix
+   float KG[2][2] = { {0,0}, {0,0}  };         // Kalman Gain Matrix
+   float Y[ROW][COL] = { {0}, {0} };          // Observation matrix
    float temp = 0.0;
 
    fd = wiringPiI2CSetup(Device_Address);
@@ -155,13 +164,11 @@ int main(void)
    dwm_loc_data_t loc;
    dwm_pos_t pos;
    loc.p_pos = &pos;
-   
-  
-  
+
+
+
    while(1)
    {
-      
-
 
        Acc_x = read_raw_data(ACCEL_XOUT_H);
        Acc_y = read_raw_data(ACCEL_YOUT_H);
@@ -183,10 +190,10 @@ int main(void)
 
       HAL_Print("\nWait %d ms...\n\n", wait_period);
       HAL_Delay(wait_period);
-      printf("At time %d\n", time);      
+      printf("At time %d\n", time);
       printf("\nThe IMU data is \n");
       printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
-      
+
 
       if(dwm_loc_get(&loc) == RV_OK)
 
@@ -212,138 +219,131 @@ int main(void)
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
       }
-     
+
       time = time + 1;
-     
+
       //Predictive State
 
     for (i = 0; i < SIZE; i++){
      X[i][0] = predictState(A,X,B, Ax, i);
       printf("The predicted state values are %.3lf\n", X[i][0]);
-
-    }
+       }
 
     for ( i = 0; i < SIZE; i++) {
-    for ( j = 0; j < SIZE; j++) {
-	   temp = processCOV(A, PC, AT, i, j);
-	   PC[i][j] = temp;
-    }
+        for ( j = 0; j < SIZE; j++) {
+	          temp = processCOV(A, PC, AT, i, j);
+	          PC[i][j] = temp;
+          }
 
-   temp = 0.0;
+     temp = 0.0;
 
-    } 
+     }
 
     for ( i = 0; i < SIZE; i++){
-    for ( j = 0; j < SIZE; j++){
-	    temp = processCOV(PC, AT, A, i, j);
-	    if ( i  == j){
-		    PC[i][j] = temp;
-		  }
-	  else {
+        for ( j = 0; j < SIZE; j++){
+	         temp = processCOV(PC, AT, A, i, j);
+	       if ( i  == j){
+		       PC[i][j] = temp;
+		     }
 
-	
+	  else {
 	   PC[i][j] = 0.0;
-	  }
-	}
+	   }
+     	  }
+
     temp = 0.0;
     }
 
    // Kalman Gain
-   
-   for (i = 0; i < SIZE; i++){
-    KG[i][i] = KalmanGain(PC, R, i);
 
-   }
+    for (i = 0; i < SIZE; i++){
+     KG[i][i] = KalmanGain(PC, R, i);
+      }
 
-   // Observation Matrix
+    // Observation Matrix
 
-   Y[0][0] = loc.p_pos->x;
-   Y[1][0] = X[1][0];
+    Y[0][0] = loc.p_pos->x;
+    Y[1][0] = X[1][0];
 
-   }
 
    //Conditiional Loop
-   for (i = 0; i < SIZE; i++){
-   X[i][0] = CurrentState(X,Y,KG,I,i);
+      for (i = 0; i < SIZE; i++){
+      X[i][0] = CurrentState(X,Y,KG,I,i);
+      }
 
-   }
+      for (i = 0; i < SIZE; i++){
+      PC[i][i] = updateCOV(PC, KG, i);
+      }
 
-   for (i = 0; i < SIZE; i++){
-   PC[i][i] = updateCOV(PC, KG, i);
-
-   }
- 
+   }// while loop
    return 0;
 }
 
-
+/* This function Predictes the next state based on the previous state and control
+   Variable matrix.
+*/
 float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float accX, int i){
 
-float sum;
-int j;
+  int j;
+  float sum;
+  sum = 0.0;
 
-sum = 0.0;
-
-for (j = 0; j < SIZE; j++){
-
+  for (j = 0; j < SIZE; j++){
   sum = a[i][j] * x[j][0] + sum;
+    }
 
-}
-
-sum = sum + b[i][0] * accX;
-
+   sum = sum + b[i][0] * accX;
 return(sum);
 }
 
-
+/* This function updates the processCOVaraince Matrix(Error in the estimate)
+*/
 
 float processCOV(float a[SIZE][SIZE], float pc[SIZE][SIZE], float at[SIZE][SIZE], int i,int j){
 
-float sum;
-int k;
-sum = 0.0;
+  float sum;
+  int k;
+  sum = 0.0;
 
-for ( k = 0; k < SIZE; k++){
-sum = a[i][k] * pc[k][j] + sum;
-
-   }
+  for ( k = 0; k < SIZE; k++){
+    sum = a[i][k] * pc[k][j] + sum;
+    }
 
  return(sum);
-
 }
+
+/*This function assigns weight to the measurement or prediction in determing
+the state estimate
+*/
 
 float KalmanGain(float pc[SIZE][SIZE], float r[SIZE][SIZE], int i){
-float sum;
+  float sum;
+  sum = pc[i][i] / (r[i][i] + pc[i][i]);
 
-sum = pc[i][i] / (r[i][i] + pc[i][i]);
-
-return(sum);
-
+ return(sum);
 }
 
-
+/* This function takes into consideration the observations, previous predictided
+    state, Kalman Gain and assigns an estimate to the state
+*/
 float CurrentState(float x[ROW][COL], float y[ROW][COL], float kg[SIZE][SIZE], float I[SIZE][SIZE], int i){
+  float sum = 0;
+  int j;
 
-float sum = 0;
-int j;
+   for ( j = 0; j < ROW; j++) {
+    sum = I[i][j] * x[j][0] + sum;
+    }
 
-for ( j = 0; j < ROW; j++) {
-sum = I[i][j] * x[j][0] + sum;
-}
-
-sum = y[i][0] - sum;
-
-sum = x[i][0] + kg[i][i] * sum;
-
+   sum = y[i][0] - sum;
+   sum = x[i][0] + kg[i][i] * sum;
 return(sum);
+ }
 
-}
-
+/* This function upadtes the new process Covariance matrix
+*/
 float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
-float sum;
-
-sum = (1- kg[i][i]) * pc[i][i];
+  float sum;
+  sum = (1- kg[i][i]) * pc[i][i];
 
 return(sum);
-
 }
