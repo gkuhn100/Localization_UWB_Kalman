@@ -360,3 +360,4 @@ float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
 
 return(sum);
 }
+
