@@ -40,7 +40,7 @@
 int fd;
 
 
-float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[ROW][SIZE], float, int);
+float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[ROW][COL], float, int);
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], float[ROW][COL], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
@@ -104,7 +104,7 @@ int main(void)
    float Gyro_x, Gyro_y, Gyro_z;
    float Ax, Ay, Az;
    float Gx, Gy, Gz;
-   int locBXp;
+   float locBXp;
    bool start = false;
    float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };  // A Matrix
    float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
@@ -198,22 +198,22 @@ int main(void)
       printf("\nThe IMU data is \n");
       printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
 
-      if( start ) {
+      if ( t == 0){
+         X[0][0] =  loc.p_pos->x
+        printf("%d\n", X[0][0]);
+        }
 
-        //Predictive State
-           X[0][0] = locBXp = loc.p_pos->x;
-           for (i = 0; i < SIZE; i++){
-           X[i][0] = predictState(A,X,B,W,Ax,i);
-           printf("The predicted state values are %.3lf\n", X[i][0]);
-         }
+       else {
 
-      }
+          for (i = 0; i < SIZE; i++){
+          X[i][0] = predictState(A,X,B,W,Ax,i);
+          printf("The predicted state values are %.3lf\n", X[i][0]);
+        }
 
       if(dwm_loc_get(&loc) == RV_OK)
 
       {
-   start = true;
-   locBXp = loc.p_pos->x;
+
 	 HAL_Print("The position of the Bridge node is\n");
    HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
@@ -268,19 +268,20 @@ int main(void)
 
     for (i = 0; i < SIZE; i++){
      KG[i][i] = KalmanGain(PC, R, i);
-      printf("The Kalman Gain is %d\n", KG[i][i]);
+      printf("The Kalman Gain is %.3lf\n", KG[i][i]);
       }
 
     // Observation Matrix
 
     Y[0][0] = loc.p_pos->x;
     Y[1][0] = X[1][0];
-    printf("The observation in the x direction is %d\n", Y[0][0]);
-    
+    printf("The observation in the x direction is %.3lf\n", Y[0][0]);
+
 
    //Current State Update
       for (i = 0; i < SIZE; i++){
       X[i][0] = CurrentState(X,Y,KG,I,i);
+      printf("The updated current state is %.3lf\n", X[i][0]);
       }
 
       for (i = 0; i < SIZE; i++){
@@ -360,4 +361,3 @@ float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
 
 return(sum);
 }
-
