@@ -104,8 +104,6 @@ int main(void)
    float Gyro_x, Gyro_y, Gyro_z;
    float Ax, Ay, Az;
    float Gx, Gy, Gz;
-   float locBXp;
-   bool start = false;
    float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };  // A Matrix
    float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
    float B[ROW][COL] = {  {.5} , {.5} };       // B matrix
@@ -198,9 +196,9 @@ int main(void)
       printf("\nThe IMU data is \n");
       printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
 
-      if ( t == 0){
-         X[0][0] =  loc.p_pos->x
-        printf("%d\n", X[0][0]);
+      if ( time == 0){
+         X[0][0] =  -1015;
+        printf("%.3lf\n", X[0][0]);
         }
 
        else {
@@ -208,7 +206,8 @@ int main(void)
           for (i = 0; i < SIZE; i++){
           X[i][0] = predictState(A,X,B,W,Ax,i);
           printf("The predicted state values are %.3lf\n", X[i][0]);
-        }
+             }
+           }
 
       if(dwm_loc_get(&loc) == RV_OK)
 
@@ -259,7 +258,7 @@ int main(void)
 	  else {
 	   PC[i][j] = 0.0;
 	   }
-     	  }
+   	  }
 
     temp = 0.0;
     }
@@ -289,13 +288,14 @@ int main(void)
       }
 
    }// while loop
-   return 0;
-}
+   return(0);
+   
+}//Main Statement
 
 /* This function Predictes the next state based on the previous state and control
    Variable matrix.
 */
-float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][SIZE], float accX, int i){
+float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][COL], float accX, int i){
 
   int j;
   float sum;
@@ -357,7 +357,7 @@ return(sum);
 */
 float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
   float sum;
-  sum = (1- kg[i][i]) * pc[i][i];
+ sum = (1- kg[i][i]) * pc[i][i];
 
 return(sum);
 }
