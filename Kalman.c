@@ -108,9 +108,9 @@ int main(void)
    float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
    float B[ROW][COL] = {  {.5} , {.5} };       // B matrix
    float I[SIZE][SIZE] = { {1,0}, {0,1}  };    // Identity Matrix
-   float R[SIZE][SIZE] = { {.2,0}, {0,.1}  };  // measurment error Matrix
+   float R[SIZE][SIZE] = { {100,0}, {0,25}  };  // measurment error Matrix
    float X[ROW][COL]  = { {0}, {0} };	         // State Matrix
-   float PC[SIZE][SIZE]  = { {.4,0}, {0,.025} }; // Process Covariance Matrix
+   float PC[SIZE][SIZE]  = { {40,0}, {0,25} }; // Process Covariance Matrix
    float KG[2][2] = { {0,0}, {0,0}  };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0}, {0} };          // Observation matrix
    float W[ROW][COL] = { {-.05}, {-.05}};        //Error in Prediction
@@ -197,7 +197,7 @@ int main(void)
       printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
 
       if ( time == 0){
-         X[0][0] =  -1015;
+         X[0][0] =  loc.p_pos->x;
         printf("%.3lf\n", X[0][0]);
         }
 
@@ -274,7 +274,6 @@ int main(void)
 
     Y[0][0] = loc.p_pos->x;
     Y[1][0] = X[1][0];
-    printf("The observation in the x direction is %.3lf\n", Y[0][0]);
 
 
    //Current State Update
@@ -285,11 +284,12 @@ int main(void)
 
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
+      printf("%.3lf\n",PC[i][i] );
       }
 
    }// while loop
    return(0);
-   
+
 }//Main Statement
 
 /* This function Predictes the next state based on the previous state and control
