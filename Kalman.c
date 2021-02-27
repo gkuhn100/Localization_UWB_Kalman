@@ -196,18 +196,13 @@ int main(void)
       printf("\nThe IMU data is \n");
       printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
 
-      if ( time == 0){
-         X[0][0] =  loc.p_pos->x;
-        printf("%.3lf\n", X[0][0]);
-        }
-
-       else {
-
-          for (i = 0; i < SIZE; i++){
-          X[i][0] = predictState(A,X,B,W,Ax,i);
-          printf("The predicted state values are %.3lf\n", X[i][0]);
+      if ( time >  0){
+        
+        for (i = 0; i < SIZE; i++){
+        X[i][0] = predictState(A,X,B,W,Ax,i);
+        printf("The predicted state values are %.3lf\n", X[i][0]);
              }
-           }
+        }   
 
       if(dwm_loc_get(&loc) == RV_OK)
 
@@ -277,14 +272,20 @@ int main(void)
 
 
    //Current State Update
+   if ( loc.p_pos->qf != 0){
       for (i = 0; i < SIZE; i++){
       X[i][0] = CurrentState(X,Y,KG,I,i);
       printf("The updated current state is %.3lf\n", X[i][0]);
       }
+   }
 
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
       printf("%.3lf\n",PC[i][i] );
+      }
+
+      if ( time == 1){
+      X[0][0] = loc.p_pos->x;
       }
 
    }// while loop
