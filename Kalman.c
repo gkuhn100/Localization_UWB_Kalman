@@ -44,6 +44,7 @@ float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[RO
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], float[ROW][COL], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
+void printKalman(float[SIZE][SIZE], int, int);
 float CurrentState(float[ROW][COL], float[ROW][COL], float[SIZE][SIZE],float[SIZE][SIZE], int);
 float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 
@@ -193,22 +194,22 @@ int main(void)
       HAL_Print("\nWait %d ms...\n\n", wait_period);
       HAL_Delay(wait_period);
       printf("At time %d\n", time);
-      printf("\nThe IMU data is \n");
-      printf("\nGx=%.3f deg/s  Gy = %.3f deg/s  Gz = %.3f deg/s  Ax = %.3f g  Ay=%.3f g Az =%.3f g \n\n", Gx, Gy, Gz, Ax, Ay, Az);
+      printf("\nThe Car is acclerating %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
+
 
       if ( time >  0){
-        
+
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,i);
         printf("The predicted state values are %.3lf\n", X[i][0]);
              }
-        }   
+        }
 
       if(dwm_loc_get(&loc) == RV_OK)
 
       {
 
-	 HAL_Print("The position of the Bridge node is\n");
+	 HAL_Print("\nThe position of the Bridge node is\n");
    HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
         HAL_Print("The position of the Anchor nodes are\n\n");
@@ -293,7 +294,7 @@ int main(void)
 
 }//Main Statement
 
-/* This function Predictes the next state based on the previous state and control
+/* This function Predicts the next state based on the previous state and control
    Variable matrix.
 */
 float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][COL], float accX, int i){
@@ -358,7 +359,24 @@ return(sum);
 */
 float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
   float sum;
- sum = (1- kg[i][i]) * pc[i][i];
+  sum = (1- kg[i][i]) * pc[i][i];
 
 return(sum);
+}
+
+void printKalman(float kg[SIZE][SIZE]){
+  int i;
+  int j;
+
+}
+
+void printCOV(float pc[SIZE][SIZE]){
+  int i;
+  int j;
+  for ( i = 0; i < SIZE;  i++ ){
+    for (j = 0; j < SIZE; j++){
+      printf("%.3f\n", pc[i][j]);
+     }
+  }
+
 }
