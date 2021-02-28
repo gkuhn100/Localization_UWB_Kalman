@@ -105,6 +105,7 @@ int main(void)
    float Gyro_x, Gyro_y, Gyro_z;
    float Ax, Ay, Az;
    float Gx, Gy, Gz;
+   float pBX = 0;
    float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };  // A Matrix
    float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
    float B[ROW][COL] = {  {.5} , {.5} };       // B matrix
@@ -169,7 +170,6 @@ int main(void)
    loc.p_pos = &pos;
 
 
-
    while(1)
    {
 
@@ -197,17 +197,58 @@ int main(void)
       printf("\nThe Car is acclerating %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
 
 
-      if ( time >  0){
+      if(dwm_loc_get(&loc) == RV_OK)
+
+         {
+
+    if ( t > 0) {
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,i);
         printf("The predicted state values are %.3lf\n", X[i][0]);
+          }
+
+          // processCOVaraince
+
+        for ( i = 0; i < SIZE; i++) {
+           for ( j = 0; j < SIZE; j++) {
+   	          temp = processCOV(A, PC, AT, Q, i, j);
+   	          PC[i][j] = temp;
              }
+
+         temp = 0.0;
+
         }
 
-      if(dwm_loc_get(&loc) == RV_OK)
+        for ( i = 0; i < SIZE; i++){
+           for ( j = 0; j < SIZE; j++){
+   	         temp = processCOV(PC, AT, A, Q, i, j);
+   	        if ( i  == j){
+   		       PC[i][j] = temp;
+   		     }
 
-      {
+    	  else {
+   	   PC[i][j] = 0.0;
+   	   }
+      	  }
+
+       temp = 0.0;
+       }
+
+       // Kalman Gain
+
+      for (i = 0; i < SIZE; i++){
+          KG[i][i] = KalmanGain(PC, R, i);
+          printf("The Kalman Gain is %.3lf\n", KG[i][i]);
+          }
+
+     }
+
+     else{
+       X[0][0] = loc.p_pos->x;
+       X[1][0] = X[0][0] + Ax*dT;
+      }
+
 
 	 HAL_Print("\nThe position of the Bridge node is\n");
    HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
@@ -232,39 +273,7 @@ int main(void)
       time = time + 1;
 
 
-       // processCOVaraince
 
-    for ( i = 0; i < SIZE; i++) {
-        for ( j = 0; j < SIZE; j++) {
-	          temp = processCOV(A, PC, AT, Q, i, j);
-	          PC[i][j] = temp;
-          }
-
-     temp = 0.0;
-
-     }
-
-    for ( i = 0; i < SIZE; i++){
-        for ( j = 0; j < SIZE; j++){
-	         temp = processCOV(PC, AT, A, Q, i, j);
-	       if ( i  == j){
-		       PC[i][j] = temp;
-		     }
-
-	  else {
-	   PC[i][j] = 0.0;
-	   }
-   	  }
-
-    temp = 0.0;
-    }
-
-   // Kalman Gain
-
-    for (i = 0; i < SIZE; i++){
-     KG[i][i] = KalmanGain(PC, R, i);
-      printf("The Kalman Gain is %.3lf\n", KG[i][i]);
-      }
 
     // Observation Matrix
 
@@ -273,7 +282,7 @@ int main(void)
 
 
    //Current State Update
-   if ( loc.p_pos->qf != 0){
+   if ( t > 0 ) {
       for (i = 0; i < SIZE; i++){
       X[i][0] = CurrentState(X,Y,KG,I,i);
       printf("The updated current state is %.3lf\n", X[i][0]);
@@ -285,9 +294,6 @@ int main(void)
       printf("%.3lf\n",PC[i][i] );
       }
 
-      if ( time == 1){
-      X[0][0] = loc.p_pos->x;
-      }
 
    }// while loop
    return(0);
