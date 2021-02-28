@@ -44,7 +44,7 @@ float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[RO
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], float[ROW][COL], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
-void printKalman(float[SIZE][SIZE], int, int);
+void printKalman(float[SIZE][SIZE]);
 float CurrentState(float[ROW][COL], float[ROW][COL], float[SIZE][SIZE],float[SIZE][SIZE], int);
 float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 
@@ -201,7 +201,7 @@ int main(void)
 
          {
 
-    if ( t > 0) {
+    if ( time > 0) {
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,i);
@@ -282,7 +282,7 @@ int main(void)
 
 
    //Current State Update
-   if ( t > 0 ) {
+   if ( time > 0 ) {
       for (i = 0; i < SIZE; i++){
       X[i][0] = CurrentState(X,Y,KG,I,i);
       printf("The updated current state is %.3lf\n", X[i][0]);
