@@ -210,12 +210,12 @@ int main(void)
         switch (i) {
            case 0:
              printf("The predicted state values is%.3lf meters in the X-direction\n", X[i][0]);
-             break;
-          case 1:
-          printf("The predicted state values is %.3lf m/s in the X-direction\n", X[i][0]);
-          break;
-          default:
-            printf("Error\n");
+              break;
+           case 1:
+             printf("The predicted state values is %.3lf m/s in the X-direction\n", X[i][0]);
+            break;
+             default:
+             printf("Error\n");
             break;
              }
           }
@@ -304,13 +304,13 @@ int main(void)
          printf("Error\n");
           }
        }
-   }
+
      printf("\n");
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
-      }
-       printProcessCOV(PC);
-
+       }
+        printProcessCOV(PC);
+     }
        time = time + 1;
    }// while loop
    return(0);
