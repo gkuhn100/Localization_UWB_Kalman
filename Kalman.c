@@ -44,10 +44,10 @@ float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[RO
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], float[ROW][COL], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
-void printKalmanGain(float[SIZE][SIZE]);
 float CurrentState(float[ROW][COL], float[ROW][COL], float[SIZE][SIZE],float[SIZE][SIZE], int);
 float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
-
+void printKalmanGain(float[SIZE][SIZE]);
+void printProcessCOV(float[SIZE][SIZE]);
 
 /* This function initialzes the registers used by the MPU6050 IMU
 */
@@ -282,8 +282,6 @@ int main(void)
       }
 
       printf("\n");
-      time = time + 1;
-
 
     // Observation Matrix
 
@@ -293,17 +291,25 @@ int main(void)
    //Current State Update
    if ( time > 0 ) {
       for (i = 0; i < SIZE; i++){
-      X[i][0] = CurrentState(X,Y,KG,I,i);
-      printf("The updated current state is %.3lf\n", X[i][0]);
-      }
+       X[i][0] = CurrentState(X,Y,KG,I,i);
+       switch (i){
+         case 0:
+         printf("The updated current state is %.3lf meters in the X-direction\n", X[i][0]);
+         break;
+         case 1:
+         printf("The updated current state is %.3lf m/s in the X-direction\n", X[i][0]);
+         default:
+         printf("Error\n");
+          }
+       }
    }
      printf("\n");
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
-      printf("%.3lf\n",PC[i][i] );
       }
+       printKalmanGain(PC);
 
-
+       time = time + 1;
    }// while loop
    return(0);
 
@@ -391,13 +397,14 @@ void printKalmanGain(float kg[SIZE][SIZE]){
   }
 }
 
-void printCOV(float pc[SIZE][SIZE]){
+void printProcessCOV(float pc[SIZE][SIZE]){
   int i;
   int j;
   for ( i = 0; i < SIZE;  i++ ){
     for (j = 0; j < SIZE; j++){
       printf("%.3f\n", pc[i][j]);
      }
+     printf("\n");
   }
 
 }
