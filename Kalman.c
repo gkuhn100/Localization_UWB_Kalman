@@ -118,6 +118,7 @@ int main(void)
    float W[ROW][COL] = { {-.05}, {-.05}};        //Error in Prediction
    float Q[ROW][COL] = { {-.1}, {-.01} };
    float temp = 0.0;
+   
 
    fd = wiringPiI2CSetup(Device_Address);
    MPU6050_Init();
@@ -236,7 +237,7 @@ int main(void)
        }
 
        // Kalman Gain
-
+      printf("\n");
       for (i = 0; i < SIZE; i++){
           KG[i][i] = KalmanGain(PC, R, i);
           printf("The Kalman Gain is %.3lf\n", KG[i][i]);
@@ -250,7 +251,7 @@ int main(void)
       }
 
 
-	 HAL_Print("\nThe position of the Bridge node is\n");
+  HAL_Print("\nThe position of the Bridge node is\n");
    HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
         HAL_Print("The position of the Anchor nodes are\n\n");
@@ -269,17 +270,15 @@ int main(void)
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
       }
-
+      
+      printf("\n");
       time = time + 1;
-
-
 
 
     // Observation Matrix
 
     Y[0][0] = loc.p_pos->x;
     Y[1][0] = X[1][0];
-
 
    //Current State Update
    if ( time > 0 ) {
@@ -288,7 +287,7 @@ int main(void)
       printf("The updated current state is %.3lf\n", X[i][0]);
       }
    }
-
+     printf("\n");
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
       printf("%.3lf\n",PC[i][i] );
