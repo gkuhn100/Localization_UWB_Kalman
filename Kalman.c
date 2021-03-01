@@ -382,9 +382,10 @@ return(sum);
 void printKalmanGain(float kg[SIZE][SIZE]){
   int i;
   int j;
+  printf("\nThe Kalman Gain is \n\n");
   for (i = 0; i < SIZE; i++){
     for (j = 0; j < SIZE; j++){
-      printf("%.3lf  ", kg);
+      printf("%.3lf  ", kg[i][j]);
     }
     printf("\n");
   }
