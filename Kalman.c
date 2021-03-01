@@ -44,7 +44,7 @@ float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[RO
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], float[ROW][COL], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
-void printKalman(float[SIZE][SIZE]);
+void printKalmanGain(float[SIZE][SIZE]);
 float CurrentState(float[ROW][COL], float[ROW][COL], float[SIZE][SIZE],float[SIZE][SIZE], int);
 float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 
@@ -208,10 +208,10 @@ int main(void)
         X[i][0] = predictState(A,X,B,W,Ax,i);
         switch (i) {
            case 0:
-             printf("The predicted state values are %.3lf meters in the X-direction\n", X[i][0]);
+             printf("The predicted state values is%.3lf meters in the X-direction\n", X[i][0]);
              break;
           case 1:
-          printf("The predicted state values are %.3lf m/s in the X-direction\n", X[i][0]);
+          printf("The predicted state values is %.3lf m/s in the X-direction\n", X[i][0]);
           break;
           default:
             printf("Error\n");
@@ -250,8 +250,8 @@ int main(void)
       printf("\n");
       for (i = 0; i < SIZE; i++){
           KG[i][i] = KalmanGain(PC, R, i);
-          printf("The Kalman Gain is %.3lf\n", KG[i][i]);
           }
+          printKalmanGain(KG);
 
      }
 
@@ -379,10 +379,15 @@ float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
 return(sum);
 }
 
-void printKalman(float kg[SIZE][SIZE]){
+void printKalmanGain(float kg[SIZE][SIZE]){
   int i;
   int j;
-
+  for (i = 0; i < SIZE; i++){
+    for (j = 0; j < SIZE; j++){
+      printf("%.3lf  ", kg);
+    }
+    printf("\n");
+  }
 }
 
 void printCOV(float pc[SIZE][SIZE]){
