@@ -105,7 +105,6 @@ int main(void)
    float Gyro_x, Gyro_y, Gyro_z;
    float Ax, Ay, Az;
    float Gx, Gy, Gz;
-   float pBX = 0;
    float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };  // A Matrix
    float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
    float B[ROW][COL] = {  {.5} , {.5} };       // B matrix
@@ -118,7 +117,9 @@ int main(void)
    float W[ROW][COL] = { {-.05}, {-.05}};        //Error in Prediction
    float Q[ROW][COL] = { {-.1}, {-.01} };
    float temp = 0.0;
-
+   float posXM;
+   float posYM;
+   float posZM;
 
    fd = wiringPiI2CSetup(Device_Address);
    MPU6050_Init();
@@ -298,6 +299,7 @@ int main(void)
          break;
          case 1:
          printf("The updated current state is %.3lf m/s in the X-direction\n", X[i][0]);
+	 break;
          default:
          printf("Error\n");
           }
@@ -307,7 +309,7 @@ int main(void)
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
       }
-       printKalmanGain(PC);
+       printProcessCOV(PC);
 
        time = time + 1;
    }// while loop
@@ -400,9 +402,11 @@ void printKalmanGain(float kg[SIZE][SIZE]){
 void printProcessCOV(float pc[SIZE][SIZE]){
   int i;
   int j;
+  printf("The updated Process Covariance Matrix is\n\n");
+
   for ( i = 0; i < SIZE;  i++ ){
     for (j = 0; j < SIZE; j++){
-      printf("%.3f\n", pc[i][j]);
+      printf("%.3f ", pc[i][j]);
      }
      printf("\n");
   }
