@@ -118,7 +118,7 @@ int main(void)
    float W[ROW][COL] = { {-.05}, {-.05}};        //Error in Prediction
    float Q[ROW][COL] = { {-.1}, {-.01} };
    float temp = 0.0;
-   
+
 
    fd = wiringPiI2CSetup(Device_Address);
    MPU6050_Init();
@@ -206,7 +206,17 @@ int main(void)
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,i);
-        printf("The predicted state values are %.3lf\n", X[i][0]);
+        switch (i) {
+           case 0:
+             printf("The predicted state values are %.3lf meters in the X-direction\n", X[i][0]);
+             break;
+          case 1:
+          printf("The predicted state values are %.3lf m/s in the X-direction\n", X[i][0]);
+          break;
+          default:
+            printf("Error\n");
+            break;
+             }
           }
 
           // processCOVaraince
@@ -270,7 +280,7 @@ int main(void)
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
       }
-      
+
       printf("\n");
       time = time + 1;
 
