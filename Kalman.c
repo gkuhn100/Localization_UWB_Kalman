@@ -21,8 +21,8 @@
 #include <math.h>
 
 #define Device_Address 0x68 /*Device Address Identifier for MPU6050*/
-#define SIZE 2
-#define ROW  2
+#define SIZE 4
+#define ROW  4
 #define COL  1
 
 #define PWR_MGMT_1   0x6B
@@ -40,7 +40,7 @@
 int fd;
 
 
-float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[ROW][COL], float, int);
+float predictState(float[SIZE][SIZE], float[ROW][COL], float[ROW][COL], float[ROW][COL], float,float, int);
 float processCOV(float[SIZE][SIZE], float[SIZE][SIZE],float[SIZE][SIZE], float[ROW][COL], int,  int);
 float measurement(float[ROW][COL], int);
 float KalmanGain(float[SIZE][SIZE], float[SIZE][SIZE],  int);
@@ -106,17 +106,17 @@ int main(void)
    float Gyro_x, Gyro_y, Gyro_z;
    float Ax, Ay, Az;
    float Gx, Gy, Gz;
-   float A[SIZE][SIZE]  = { {1, dT}, {0, 1} };  // A Matrix
-   float AT[SIZE][SIZE] = { {1,0}, {1,1}  };   // A transpose Matrix
-   float B[ROW][COL] = {  {.5} , {.5} };       // B matrix
-   float I[SIZE][SIZE] = { {1,0}, {0,1}  };    // Identity Matrix
-   float R[SIZE][SIZE] = { {100,0}, {0,25}  };  // measurment error Matrix
-   float X[ROW][COL]  = { {0}, {0} };	         // State Matrix
-   float PC[SIZE][SIZE]  = { {40,0}, {0,25} }; // Process Covariance Matrix
-   float KG[2][2] = { {0,0}, {0,0}  };         // Kalman Gain Matrix
-   float Y[ROW][COL] = { {0}, {0} };          // Observation matrix
-   float W[ROW][COL] = { {-.05}, {-.05}};        //Error in Prediction
-   float Q[ROW][COL] = { {-.1}, {-.01} };
+   float A[SIZE][SIZE]  = { {1,0,dT,0}, {0,1,0,dT},{0,0,1,0}, {0,0,0,1} };  // A Matrix
+   float AT[SIZE][SIZE] = { {1,0,0,0}, {0,1,0,0},{dT,0,1,0}, {0,dT,0,1} };  // A transpose Matrix
+   float B[ROW][COL] = {  {.5*dT*dT}, {.5*dT*dT}, {dT}, {dT} };       // B matrix
+   float I[SIZE][SIZE] = { {1,0,0,0}, {0,1,0,0},{0,0,1,0},{0,0,0,1}  };    // Identity Matrix
+   float R[SIZE][SIZE] = { {100,0,0,0},{0,100,0,0}, {0,0,25,0},{0,0,0,25}  };  // measurment error Matrix
+   float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
+   float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
+   float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
+   float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
+   float W[ROW][COL] = { {0},{0},{0},{0} };        //Error in Prediction
+   float Q[ROW][COL] = { {0},{0},{0},{0} };
    float temp = 0.0;
    float posXM;
    float posYM;
@@ -207,14 +207,20 @@ int main(void)
     if ( time > 0) {
 
         for (i = 0; i < SIZE; i++){
-        X[i][0] = predictState(A,X,B,W,Ax,i);
+        X[i][0] = predictState(A,X,B,W,Ax,Ay,i);
         switch (i) {
            case 0:
-             printf("The predicted state values is%.3lf meters in the X-direction\n", X[i][0]);
+             printf("The predicted position is %.3lf meters in the X-direction\n", X[i][0]);
               break;
            case 1:
-             printf("The predicted state values is %.3lf m/s in the X-direction\n", X[i][0]);
-            break;
+             printf("The predicted position is %.3lf m/s in the Y-direction\n", X[i][0]);
+             break;
+           case 2:
+              printf("The predicted velocity in the X-direction is %.3lf m/s\n", X[i][0]);
+              break;
+           case 3:
+             printf("The predicted velocity in the Y-direction is %.3lf m/s\n", X[i][0]);
+              break;
              default:
              printf("Error\n");
             break;
@@ -259,9 +265,11 @@ int main(void)
 
      }
 
-     else{
+     else {
        X[0][0] = loc.p_pos->x;
-       X[1][0] = X[0][0] + Ax*dT;
+       X[1][0] = loc.p_pos->y;
+       X[2][0] = X[0][0] + Ax*dT;
+       X[3][0] = X[1][0] + Ay*dT;
       }
 
 
@@ -290,7 +298,9 @@ int main(void)
     // Observation Matrix
 
     Y[0][0] = loc.p_pos->x;
-    Y[1][0] = X[1][0];
+    Y[1][0] = loc.p_pos->y;
+    Y[2][0] = X[2][0];
+    Y[3][0] = X[3][0];
 
    //Current State Update
    if ( time > 0 ) {
@@ -298,17 +308,27 @@ int main(void)
        X[i][0] = CurrentState(X,Y,KG,I,i);
        switch (i){
          case 0:
-         printf("The updated current state is %.3lf meters in the X-direction\n", X[i][0]);
-         break;
+           printf("The updated position in the X-direction is %.3lf\n", X[i][0]);
+           break;
          case 1:
-         printf("The updated current state is %.3lf m/s in the X-direction\n", X[i][0]);
-	 break;
-         default:
-         printf("Error\n");
+           printf("The updated position in the Y-direction is %.3lf\n", X[i][0]);
+	         break;
+        case 2:
+           printf("The updated X-velocity is %.3lf\n", X[i][0]);
+           break;
+        case 3:
+          printf("The updated Y-velocity is %.3lf\n", X[i][0]);
+          break;
+        default:
+          printf("Error\n");
           }
        }
 
-     printf("\n");
+     printf("\n\n");
+
+     /* Updated Process Covariance
+     */
+
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
        }
@@ -323,7 +343,7 @@ int main(void)
 /* This function Predicts the next state based on the previous state and control
    Variable matrix.
 */
-float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][COL], float accX, int i){
+float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][COL], float accX,float accY int i){
 
   int j;
   float sum;
@@ -333,7 +353,13 @@ float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], fl
   sum = a[i][j] * x[j][0] + sum;
     }
 
-   sum = sum + b[i][0] * accX;
+   if ( (i % 2) == 0 ) {
+     sum = sum + b[i][0] * accX;
+   }
+   else {
+     sum = sum + b[i][0] * accY;
+   }
+
    sum = sum + w[i][0];
 return(sum);
 }
