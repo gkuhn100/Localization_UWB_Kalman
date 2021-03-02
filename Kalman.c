@@ -48,6 +48,7 @@ float CurrentState(float[ROW][COL], float[ROW][COL], float[SIZE][SIZE],float[SIZ
 float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 void printKalmanGain(float[SIZE][SIZE]);
 void printProcessCOV(float[SIZE][SIZE]);
+void printUpdateProcessCOV(float[SIZE][SIZE]);
 
 /* This function initialzes the registers used by the MPU6050 IMU
 */
@@ -246,6 +247,8 @@ int main(void)
 
        temp = 0.0;
        }
+      print("\n\n");
+      printProcessCOV(PC);
 
        // Kalman Gain
       printf("\n");
@@ -309,7 +312,7 @@ int main(void)
       for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
        }
-        printProcessCOV(PC);
+        printUpdateProcessCOV(PC);
      }
        time = time + 1;
    }// while loop
@@ -400,6 +403,20 @@ void printKalmanGain(float kg[SIZE][SIZE]){
 }
 
 void printProcessCOV(float pc[SIZE][SIZE]){
+  int i;
+  int j;
+  printf("The current Process Covariance Matrix is\n\n");
+
+  for ( i = 0; i < SIZE;  i++ ){
+    for (j = 0; j < SIZE; j++){
+      printf("%.3f ", pc[i][j]);
+     }
+     printf("\n");
+  }
+
+}
+
+void printUpdateProcessCOV(float pc[SIZE][SIZE]){
   int i;
   int j;
   printf("The updated Process Covariance Matrix is\n\n");
