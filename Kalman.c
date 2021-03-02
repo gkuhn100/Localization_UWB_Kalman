@@ -197,10 +197,10 @@ int main(void)
       HAL_Print("\nWait %d ms...\n\n", wait_period);
       HAL_Delay(wait_period);
       printf("At time %d\n", time);
-      printf("\nThe Car is acclerating %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
+      printf("\nThe Car acceleration is %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
 
 
-      if(dwm_loc_get(&loc) == RV_OK)
+      if(dwm_loc_get(&loc) == RV_OK && (loc.p_pos->qf) != 0 )
 
          {
 
