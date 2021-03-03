@@ -248,11 +248,12 @@ int main(void)
 
     	  else {
    	   PC[i][j] = 0.0;
-   	   }
-      	  }
+   	       }
+      	}
 
        temp = 0.0;
        }
+
       print("\n\n");
       printProcessCOV(PC);
 
