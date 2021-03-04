@@ -122,6 +122,7 @@ int main(void)
    float posYM;
    float posZM;
 
+
    fd = wiringPiI2CSetup(Device_Address);
    MPU6050_Init();
 
@@ -199,10 +200,11 @@ int main(void)
       printf("At time %d\n", time);
       printf("\nThe Car acceleration is %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
 
+      if (dwm_loc_get(&loc) == RV_OK  )
 
-      if(dwm_loc_get(&loc) == RV_OK && (loc.p_pos->qf) != 0 )
+        {
 
-         {
+
 
     if ( time > 0) {
 
@@ -254,7 +256,7 @@ int main(void)
        temp = 0.0;
        }
 
-      print("\n\n");
+      printf("\n\n");
       printProcessCOV(PC);
 
        // Kalman Gain
@@ -264,17 +266,17 @@ int main(void)
           }
           printKalmanGain(KG);
 
-     }
+         }
 
      else {
        X[0][0] = loc.p_pos->x;
        X[1][0] = loc.p_pos->y;
-       X[2][0] = X[0][0] + Ax*dT;
-       X[3][0] = X[1][0] + Ay*dT;
+       X[2][0] = Ax*dT;
+       X[3][0] = Ay*dT;
       }
 
 
-  HAL_Print("\nThe position of the Bridge node is\n");
+  HAL_Print("\nThe measured position of the Bridge node is\n");
    HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
         HAL_Print("The position of the Anchor nodes are\n\n");
@@ -335,8 +337,11 @@ int main(void)
        }
         printUpdateProcessCOV(PC);
      }
+
        time = time + 1;
-   }// while loop
+
+
+ }// while loop
    return(0);
 
 }//Main Statement
@@ -344,7 +349,7 @@ int main(void)
 /* This function Predicts the next state based on the previous state and control
    Variable matrix.
 */
-float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][COL], float accX,float accY int i){
+float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], float w[ROW][COL], float accX,float accY, int i){
 
   int j;
   float sum;
