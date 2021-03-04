@@ -204,12 +204,11 @@ int main(void)
 
         {
 
-
-
     if ( time > 0) {
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,Ay,i);
+        X[i][0] = X[i][0] * 1e-3;
         switch (i) {
            case 0:
              printf("The predicted position is %.3lf meters in the X-direction\n", X[i][0]);
@@ -269,8 +268,8 @@ int main(void)
          }
 
      else {
-       X[0][0] = loc.p_pos->x;
-       X[1][0] = loc.p_pos->y;
+       X[0][0] = loc.p_pos->x * 1e-3;
+       X[1][0] = loc.p_pos->y * 1e-3;
        X[2][0] = Ax*dT;
        X[3][0] = Ay*dT;
       }
@@ -300,8 +299,8 @@ int main(void)
 
     // Observation Matrix
 
-    Y[0][0] = loc.p_pos->x;
-    Y[1][0] = loc.p_pos->y;
+    Y[0][0] = X[0][0];
+    Y[1][0] = x[1][0];
     Y[2][0] = X[2][0];
     Y[3][0] = X[3][0];
 
