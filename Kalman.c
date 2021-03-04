@@ -204,11 +204,19 @@ int main(void)
 
         {
 
-    if ( time > 0) {
+      if (time == 0) {
+            X[0][0] = loc.p_pos->x;
+            X[1][0] = loc.p_pos->y;
+            X[2][0] = Ax*dT;
+            X[3][0] = Ay*dT;
+           }
+
+
+  elseif ( time > 0) {
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,Ay,i);
-        X[i][0] = X[i][0] * 1e-3;
+        X[i][0] = X[i][0];
         switch (i) {
            case 0:
              printf("The predicted position is %.3lf meters in the X-direction\n", X[i][0]);
@@ -255,6 +263,7 @@ int main(void)
        temp = 0.0;
        }
 
+
       printf("\n\n");
       printProcessCOV(PC);
 
@@ -265,14 +274,7 @@ int main(void)
           }
           printKalmanGain(KG);
 
-         }
-
-     else {
-       X[0][0] = loc.p_pos->x * 1e-3;
-       X[1][0] = loc.p_pos->y * 1e-3;
-       X[2][0] = Ax*dT;
-       X[3][0] = Ay*dT;
-      }
+      } // t > 0
 
 
   HAL_Print("\nThe measured position of the Bridge node is\n");
@@ -293,7 +295,7 @@ int main(void)
             }
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
-      }
+      } \\dwm_loc_get
 
       printf("\n");
 
@@ -335,7 +337,7 @@ int main(void)
       PC[i][i] = updateCOV(PC, KG, i);
        }
         printUpdateProcessCOV(PC);
-     }
+     } // t > 0
 
        time = time + 1;
 
@@ -412,7 +414,7 @@ float CurrentState(float x[ROW][COL], float y[ROW][COL], float kg[SIZE][SIZE], f
 return(sum);
  }
 
-/* This function upadtes the new process Covariance matrix
+/* This function updates the new process Covariance matrix
 */
 float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
   float sum;
