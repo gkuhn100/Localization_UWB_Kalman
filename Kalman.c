@@ -269,10 +269,18 @@ int main(void)
 
        // Kalman Gain
       printf("\n");
-      for (i = 0; i < SIZE; i++){
+
+      for (i = 0; i < SIZE; i++) {
+
+        if ( (loc.p_pos->qf) != 0 ) {
           KG[i][i] = KalmanGain(PC, R, i);
-          }
-          printKalmanGain(KG);
+           }
+         else {
+           KG[i][i] = 0;
+           }
+        }
+
+         printKalmanGain(KG);
 
       } // t > 0
 
