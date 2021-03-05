@@ -113,7 +113,8 @@ int main(void)
    float R[SIZE][SIZE] = { {100,0,0,0},{0,100,0,0}, {0,0,25,0},{0,0,0,25}  };  // measurment error Matrix
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
-   float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
+   float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} }; // Kalman Gain Matrix
+   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
    float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
    float W[ROW][COL] = { {0},{0},{0},{0} };        //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
@@ -276,7 +277,7 @@ int main(void)
           KG[i][i] = KalmanGain(PC, R, i);
            }
          else {
-           KG[i][i] = 0;
+           KGT[i][i] = 0;
            }
         }
 
@@ -303,19 +304,19 @@ int main(void)
             }
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
-      } \\dwm_loc_get
+      } //dwm_loc_get
 
       printf("\n");
 
     // Observation Matrix
 
     Y[0][0] = X[0][0];
-    Y[1][0] = x[1][0];
+    Y[1][0] = X[1][0];
     Y[2][0] = X[2][0];
     Y[3][0] = X[3][0];
 
    //Current State Update
-   if ( time > 0 ) {
+   if ( time > 0 && (loc.p_pos->qf !=0) ) {
       for (i = 0; i < SIZE; i++){
        X[i][0] = CurrentState(X,Y,KG,I,i);
        switch (i){
@@ -335,6 +336,27 @@ int main(void)
           printf("Error\n");
           }
        }
+
+       else if ( time > 0 && (loc.p_pos->qf == 0) ) {
+           for (i = 0; i < SIZE; i++){
+            X[i][0] = CurrentState(X,Y,KGT,I,i);
+            switch (i){
+              case 0:
+                printf("The updated position in the X-direction is %.3lf\n", X[i][0]);
+                break;
+              case 1:
+                printf("The updated position in the Y-direction is %.3lf\n", X[i][0]);
+     	         break;
+             case 2:
+                printf("The updated X-velocity is %.3lf\n", X[i][0]);
+                break;
+             case 3:
+               printf("The updated Y-velocity is %.3lf\n", X[i][0]);
+               break;
+             default:
+               printf("Error\n");
+               }
+            }
 
      printf("\n\n");
 
