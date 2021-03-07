@@ -384,7 +384,7 @@ float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], fl
   sum = 0.0;
 
   for (j = 0; j < SIZE; j++){
-  sum = a[i][j] * x[j][0] + sum;
+  sum = a[i][j] * (x[j][0]*1e-3) + sum;
     }
 
    if ( (i % 2) == 0 ) {
