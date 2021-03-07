@@ -91,7 +91,6 @@ Finally, a Kalman Filter has been added to combine these measurements to form a
 more accurate predictided state. That being the Decawave bridge's position and
 velocity. This process was rather complicated and needed to be broken down into
 multiple steps.
-
 */
 
 
@@ -113,8 +112,8 @@ int main(void)
    float R[SIZE][SIZE] = { {100,0,0,0},{0,100,0,0}, {0,0,25,0},{0,0,0,25}  };  // measurment error Matrix
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
-   float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} }; // Kalman Gain Matrix
-   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
+   float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix 
+   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
    float W[ROW][COL] = { {0},{0},{0},{0} };        //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
@@ -122,7 +121,6 @@ int main(void)
    float posXM;
    float posYM;
    float posZM;
-
 
    fd = wiringPiI2CSetup(Device_Address);
    MPU6050_Init();
@@ -201,23 +199,15 @@ int main(void)
       printf("At time %d\n", time);
       printf("\nThe Car acceleration is %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
 
-      if (dwm_loc_get(&loc) == RV_OK  )
 
-        {
+      if(dwm_loc_get(&loc) == RV_OK && (loc.p_pos->qf) != 0 )
 
-      if (time == 0) {
-            X[0][0] = loc.p_pos->x;
-            X[1][0] = loc.p_pos->y;
-            X[2][0] = Ax*dT;
-            X[3][0] = Ay*dT;
-           }
+         {
 
-
-  elseif ( time > 0) {
+    if ( time > 0) {
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,Ay,i);
-        X[i][0] = X[i][0];
         switch (i) {
            case 0:
              printf("The predicted position is %.3lf meters in the X-direction\n", X[i][0]);
@@ -258,35 +248,45 @@ int main(void)
 
     	  else {
    	   PC[i][j] = 0.0;
-   	       }
-      	}
+   	   }
+      	  }
 
        temp = 0.0;
        }
-
-
       printf("\n\n");
       printProcessCOV(PC);
 
        // Kalman Gain
       printf("\n");
 
-      for (i = 0; i < SIZE; i++) {
-
-        if ( (loc.p_pos->qf) != 0 ) {
+    if ( loc.p_pos->qf !=0 ){
+      for (i = 0; i < SIZE; i++){
           KG[i][i] = KalmanGain(PC, R, i);
-           }
-         else {
-           KGT[i][i] = 0;
-           }
-        }
+          }
+      }
 
-         printKalmanGain(KG);
+    else{
+		 
+	for (i=0; i< SIZE; i++){
+	  KGT[i][i] = 0.0;
 
-      } // t > 0
+ 	  }	
+
+	}
+
+          printKalmanGain(KG);
+
+     }//t > 0
+
+     else {
+       X[0][0] = loc.p_pos->x;
+       X[1][0] = loc.p_pos->y;
+       X[2][0] = X[0][0] + Ax*dT;
+       X[3][0] = X[1][0] + Ay*dT;
+      }
 
 
-  HAL_Print("\nThe measured position of the Bridge node is\n");
+  HAL_Print("\nThe measured  position of the Bridge node is\n");
    HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
         HAL_Print("The position of the Anchor nodes are\n\n");
@@ -304,59 +304,60 @@ int main(void)
             }
             HAL_Print("=%u,%u\n", loc.anchors.dist.dist[i], loc.anchors.dist.qf[i]);
          }
-      } //dwm_loc_get
+      }
 
       printf("\n");
 
     // Observation Matrix
 
-    Y[0][0] = X[0][0];
-    Y[1][0] = X[1][0];
+    Y[0][0] = loc.p_pos->x;
+    Y[1][0] = loc.p_pos->y;
     Y[2][0] = X[2][0];
     Y[3][0] = X[3][0];
 
    //Current State Update
-   if ( time > 0 && (loc.p_pos->qf !=0) ) {
+   if ( time > 0 && (loc.p_pos->qf) != 0   ) {
       for (i = 0; i < SIZE; i++){
        X[i][0] = CurrentState(X,Y,KG,I,i);
        switch (i){
          case 0:
-           printf("The updated position in the X-direction is %.3lf\n", X[i][0]);
+           printf("The updated position in the X-direction is %.3lf Meters\n", X[i][0]);
            break;
          case 1:
-           printf("The updated position in the Y-direction is %.3lf\n", X[i][0]);
+           printf("The updated position in the Y-direction is %.3lf Meters\n", X[i][0]);
 	         break;
         case 2:
-           printf("The updated X-velocity is %.3lf\n", X[i][0]);
+           printf("The updated X-velocity is %.3lf m/s \n", X[i][0]);
            break;
         case 3:
-          printf("The updated Y-velocity is %.3lf\n", X[i][0]);
+          printf("The updated Y-velocity is  %.3lf m/s \n", X[i][0]);
           break;
         default:
           printf("Error\n");
           }
        }
 
-       else if ( time > 0 && (loc.p_pos->qf == 0) ) {
-           for (i = 0; i < SIZE; i++){
-            X[i][0] = CurrentState(X,Y,KGT,I,i);
-            switch (i){
-              case 0:
-                printf("The updated position in the X-direction is %.3lf\n", X[i][0]);
-                break;
-              case 1:
-                printf("The updated position in the Y-direction is %.3lf\n", X[i][0]);
-     	         break;
-             case 2:
-                printf("The updated X-velocity is %.3lf\n", X[i][0]);
-                break;
-             case 3:
-               printf("The updated Y-velocity is %.3lf\n", X[i][0]);
-               break;
-             default:
-               printf("Error\n");
-               }
-            }
+    if ( time > 0 && (loc.p_pos->qf) == 0){
+	for (i = 0; i < SIZE; i++){
+	X[i][0] = CurrentState(X,Y, KGT,I,i);
+	}
+    	switch	(i){
+	  case 0:
+	   printf("The updated position in the X-direction is %.3lf Meters\n", X[i][0]);
+	   break;
+	  case 1:
+	   printf("The update position in the Y-direction is %.3lf Meters\n", X[i][0]);
+	   break;
+	  case 2:
+	   printf("The Update X-Velocity is %.3lf m/s \n", X[i][0]);
+	   break;
+	  case 3:
+	   printf("The Update Y-Velocity is %.3lf m/s \n", X[i][0]);
+	   break;
+	  default:
+	   printf("Error\n");
+          }
+    }  
 
      printf("\n\n");
 
@@ -367,12 +368,9 @@ int main(void)
       PC[i][i] = updateCOV(PC, KG, i);
        }
         printUpdateProcessCOV(PC);
-     } // t > 0
-
+     }
        time = time + 1;
-
-
- }// while loop
+   }// while loop
    return(0);
 
 }//Main Statement
@@ -444,7 +442,7 @@ float CurrentState(float x[ROW][COL], float y[ROW][COL], float kg[SIZE][SIZE], f
 return(sum);
  }
 
-/* This function updates the new process Covariance matrix
+/* This function upadtes the new process Covariance matrix
 */
 float updateCOV(float pc[SIZE][SIZE], float kg[SIZE][SIZE], int i){
   float sum;
