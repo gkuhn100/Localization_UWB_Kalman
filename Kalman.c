@@ -188,6 +188,8 @@ int main(void)
        Ax = Acc_x / 16384.0;
        Ay = Acc_y / 16384.0;
        Az = Acc_z / 16384.0;
+       Ax = Ax -.130;
+       Ay = Ay +.039; 
 
        Gx = Gyro_x / 131;
        Gy = Gyro_y / 131;
@@ -276,8 +278,8 @@ int main(void)
 
      else
      {
-       X[0][0] = loc.p_pos->x;
-       X[1][0] = loc.p_pos->y;
+       X[0][0] = loc.p_pos->x * .001;
+       X[1][0] = loc.p_pos->y * .001;
        X[2][0] = X[0][0] + Ax*dT;
        X[3][0] = X[1][0] + Ay*dT;
       }
@@ -306,8 +308,8 @@ int main(void)
 
     // Observation Matrix
 
-    Y[0][0] = loc.p_pos->x;
-    Y[1][0] = loc.p_pos->y;
+    Y[0][0] = loc.p_pos->x * .001;
+    Y[1][0] = loc.p_pos->y * .001;
     Y[2][0] = X[2][0];
     Y[3][0] = X[3][0];
 
@@ -384,7 +386,7 @@ float predictState(float a[SIZE][SIZE], float x[ROW][COL], float b[ROW][COL], fl
   sum = 0.0;
 
   for (j = 0; j < SIZE; j++){
-  sum = a[i][j] * (x[j][0]*1e-3) + sum;
+  sum = a[i][j] * x[j][0]  + sum;
     }
 
    if ( (i % 2) == 0 ) {
