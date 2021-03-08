@@ -115,7 +115,7 @@ int main(void)
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
-   float W[ROW][COL] = { {0},{0},{0},{0} };         //Error in Prediction
+   float W[ROW][COL] = { {-.065},{0.0019},{0},{0} }; //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
    float temp = 0.0;
    float posXM;
@@ -188,8 +188,7 @@ int main(void)
        Ax = Acc_x / 16384.0;
        Ay = Acc_y / 16384.0;
        Az = Acc_z / 16384.0;
-       Ax = Ax -.130;
-       Ay = Ay +.039; 
+
 
        Gx = Gyro_x / 131;
        Gy = Gyro_y / 131;
