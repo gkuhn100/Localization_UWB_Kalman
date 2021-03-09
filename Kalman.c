@@ -109,13 +109,13 @@ int main(void)
    float AT[SIZE][SIZE] = { {1,0,0,0}, {0,1,0,0},{dT,0,1,0}, {0,dT,0,1} };  // A transpose Matrix
    float B[ROW][COL] = {  {.5*dT*dT}, {.5*dT*dT}, {dT}, {dT} };       // B matrix
    float I[SIZE][SIZE] = { {1,0,0,0}, {0,1,0,0},{0,0,1,0},{0,0,0,1}  };    // Identity Matrix
-   float R[SIZE][SIZE] = { {100,0,0,0},{0,100,0,0}, {0,0,25,0},{0,0,0,25}  };  // measurment error Matrix
+   float R[SIZE][SIZE] = { {20,0,0,0},{0,20,0,0}, {0,0,15,0},{0,0,0,15}  };  // measurment error Matrix
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
-   float W[ROW][COL] = { {-.065},{0.0019},{0},{0} }; //Error in Prediction
+   float W[ROW][COL] = { {-.065},{0.018},{-.127},{.037} }; //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
    float temp = 0.0;
    float posXM;
@@ -279,13 +279,16 @@ int main(void)
      {
        X[0][0] = loc.p_pos->x * .001;
        X[1][0] = loc.p_pos->y * .001;
-       X[2][0] = X[0][0] + Ax*dT;
-       X[3][0] = X[1][0] + Ay*dT;
+       X[2][0] = X[2][0] + Ax*dT;
+       X[3][0] = X[3][0] + Ay*dT;
       }
 
   HAL_Print("\nThe measured  position of the Bridge node is\n");
   HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
+   if (loc.p_pos->qf == 0){
+   HAL_Print("\nWarning The Bridge node is out of the LOS\n\n");
+   }
         HAL_Print("The position of the Anchor nodes are\n\n");
 
          for (i = 0; i < loc.anchors.dist.cnt; ++i)
