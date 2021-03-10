@@ -370,17 +370,20 @@ int main(void)
         printf("Error\n");
         }
       }
-   }
+      for (i = 0; i < SIZE; i++){
+          PC[i][i] = updateCOV(PC, KG, i);
+           }
+          printUpdateProcessCOV(PC);
+   }//QF
 
      printf("\n\n");
      /* Updated Process Covariance
      */
-     if ( loc.p_pos->qf != 0 ){
+
   for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
        }
       printUpdateProcessCOV(PC);
-    }//QF
   }//Time
       time = time + 1;
   }// while loop
