@@ -113,15 +113,12 @@ int main(void)
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
-   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
-   float PCT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };       // Kalman Gain Matrix
-   float Y[ROW][COL] = { {0.05},{0.05},{0},{0} };          // Observation matrix
+   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
+   float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
    float W[ROW][COL] = { {-.065},{0.018},{-.127},{.037} }; //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
    float temp = 0.0;
-   float posXM;
-   float posYM;
-   float posZM;
+   bool SETUP = false;
 
    fd = wiringPiI2CSetup(Device_Address);
    MPU6050_Init();
@@ -173,7 +170,6 @@ int main(void)
    dwm_pos_t pos;
    loc.p_pos = &pos;
 
-
    while(1)
    {
 
@@ -185,28 +181,23 @@ int main(void)
        Gyro_y = read_raw_data(GYRO_YOUT_H);
        Gyro_z = read_raw_data(GYRO_ZOUT_H);
 
-
        Ax = Acc_x / 16384.0;
        Ay = Acc_y / 16384.0;
        Az = Acc_z / 16384.0;
 
-
        Gx = Gyro_x / 131;
        Gy = Gyro_y / 131;
        Gz = Gyro_z / 131;
-
 
       HAL_Print("\nWait %d ms...\n\n", wait_period);
       HAL_Delay(wait_period);
       printf("At time %d\n", time);
       printf("\nThe Car acceleration is %.3f g's in the X-direction and %.3f g's in the Y \n\n", Ax, Ay);
 
-
       if(dwm_loc_get(&loc) == RV_OK )
-
          {
 
-    if ( time > 0) {
+    if (SETUP) {
 
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,Ay,i);
@@ -230,7 +221,6 @@ int main(void)
           }
 
           // processCOVaraince
-    if ( loc.p_pos->qf == 0) {
         for ( i = 0; i < SIZE; i++) {
            for ( j = 0; j < SIZE; j++) {
    	          temp = processCOV(A, PC, AT, Q, i, j);
@@ -250,23 +240,12 @@ int main(void)
       {
    	    PC[i][j] = 0.0;
    	  }
-      	  }
-
+    }
        temp = 0.0;
-       }
-     }
-     else {
-       for ( i = 0; i < SIZE; i++) {
-          for ( j = 0; j < SIZE; j++) {
-              temp = processCOV(A, PC, AT, Q, i, j);
-              PCT[i][j] = temp;
-            }
-        temp = 0.0;
-       }
+     } // QF
 
-     }
       printf("\n\n");
-      printProcessCOV(PCT);
+      printProcessCOV(PC);
 
        // Kalman Gain
       printf("\n");
@@ -287,13 +266,18 @@ int main(void)
 
      }//t > 0
 
-     else
+     else if ( SETUP == false && loc.p_pos->qf !=0)
      {
        X[0][0] = loc.p_pos->x * .001;
        X[1][0] = loc.p_pos->y * .001;
        X[2][0] = X[2][0] + Ax*dT;
        X[3][0] = X[3][0] + Ay*dT;
+       SETUP = true;
       }
+    else
+    {
+      printf("Nothing is happening");
+    }
 
   HAL_Print("\nThe measured  position of the Bridge node is\n");
   HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
@@ -350,13 +334,7 @@ int main(void)
           printf("Error\n");
           }
         }
-
-        for (i = 0; i < SIZE; i++){
-            PC[i][i] = updateCOV(PC, KG, i);
-             }
-            printUpdateProcessCOV(PC);
-      }//QF = 0
-
+      }
 
   else
   {
@@ -379,19 +357,17 @@ int main(void)
         printf("Error\n");
         }
       }
-
-      for (i = 0; i < SIZE; i++){
-          PC[i][i] = 0.0;
-           }
-
-     printUpdateProcessCOV(PC);
-  }// time
+   }
 
 
      printf("\n\n");
      /* Updated Process Covariance
      */
-
+  for (i = 0; i < SIZE; i++){
+      PC[i][i] = updateCOV(PC, KG, i);
+       }
+      printUpdateProcessCOV(PC);
+    }//time
       time = time + 1;
   }// while loop
    return(0);
