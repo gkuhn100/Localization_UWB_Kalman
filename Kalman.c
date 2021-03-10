@@ -113,8 +113,9 @@ int main(void)
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
-   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
-   float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
+   float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
+   float PCT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };       // Kalman Gain Matrix
+   float Y[ROW][COL] = { {0.05},{0.05},{0},{0} };          // Observation matrix
    float W[ROW][COL] = { {-.065},{0.018},{-.127},{.037} }; //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
    float temp = 0.0;
@@ -229,7 +230,7 @@ int main(void)
           }
 
           // processCOVaraince
-
+    if ( loc.p_pos->qf == 0) {
         for ( i = 0; i < SIZE; i++) {
            for ( j = 0; j < SIZE; j++) {
    	          temp = processCOV(A, PC, AT, Q, i, j);
@@ -253,8 +254,19 @@ int main(void)
 
        temp = 0.0;
        }
+     }
+     else {
+       for ( i = 0; i < SIZE; i++) {
+          for ( j = 0; j < SIZE; j++) {
+              temp = processCOV(A, PC, AT, Q, i, j);
+              PCT[i][j] = temp;
+            }
+        temp = 0.0;
+       }
+
+     }
       printf("\n\n");
-      printProcessCOV(PC);
+      printProcessCOV(PCT);
 
        // Kalman Gain
       printf("\n");
@@ -338,7 +350,13 @@ int main(void)
           printf("Error\n");
           }
         }
-      }
+
+        for (i = 0; i < SIZE; i++){
+            PC[i][i] = updateCOV(PC, KG, i);
+             }
+            printUpdateProcessCOV(PC);
+      }//QF = 0
+
 
   else
   {
@@ -361,17 +379,19 @@ int main(void)
         printf("Error\n");
         }
       }
-   }
+
+      for (i = 0; i < SIZE; i++){
+          PC[i][i] = 0.0;
+           }
+
+     printUpdateProcessCOV(PC);
+  }// time
 
 
      printf("\n\n");
      /* Updated Process Covariance
      */
-  for (i = 0; i < SIZE; i++){
-      PC[i][i] = updateCOV(PC, KG, i);
-       }
-      printUpdateProcessCOV(PC);
-    }//time
+
       time = time + 1;
   }// while loop
    return(0);
