@@ -221,6 +221,7 @@ int main(void)
           }
 
           // processCOVaraince
+      if (loc.p_pos->qf !=0 ) {
         for ( i = 0; i < SIZE; i++) {
            for ( j = 0; j < SIZE; j++) {
    	          temp = processCOV(A, PC, AT, Q, i, j);
@@ -236,14 +237,28 @@ int main(void)
    		         PC[i][j] = temp;
    		     }
 
-    	else
-      {
+    	   else
+          {
    	    PC[i][j] = 0.0;
-   	  }
-    }
-       temp = 0.0;
-     } // QF
+   	     }
+          }
+           temp = 0.0;
+          } // QF
 
+   else {
+     for ( i = 0; i < SIZE; i++) {
+        for ( j = 0; j < SIZE; j++) {
+           temp = processCOV(A, PC, AT, Q, i, j);
+           PCT[i][j] = 0;
+          }
+      temp = 0.0;
+     }
+
+
+       } // QF
+
+   }
+}
       printf("\n\n");
       printProcessCOV(PC);
 
