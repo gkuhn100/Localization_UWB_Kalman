@@ -49,6 +49,7 @@ float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 void printKalmanGain(float[SIZE][SIZE]);
 void printProcessCOV(float[SIZE][SIZE]);
 void printUpdateProcessCOV(float[SIZE][SIZE]);
+void detDistance(int, int, char);
 
 /* This function initialzes the registers used by the MPU6050 IMU
 */
@@ -219,7 +220,7 @@ int main(void)
              printf("Error\n");
             break;
              }
-          }
+          }//PredictState
 
      if ( loc.p_pos->qf != 0 ){
           // processCOVaraince
@@ -245,28 +246,37 @@ int main(void)
     }
        temp = 0.0;
      }
- } //QF
+
       printf("\n\n");
       printProcessCOV(PC);
 
        // Kalman Gain
       printf("\n");
 
-    if ( loc.p_pos->qf != 0 ){
       for (i = 0; i < SIZE; i++){
           KG[i][i] = KalmanGain(PC, R, i);
           }
-       }
 
+      }//QF
   else
   {
   	for (i=0; i< SIZE; i++){
 	  KGT[i][i] = 0.0;
  	   }
-	}
-    printKalmanGain(KG);
 
-     }//t > 0
+     for ( i = 0; i < SIZE; i++) {
+        for ( j = 0; j < SIZE; j++) {
+           temp = processCOV(A, PCT, AT, Q, i, j);
+           PC[i][j] = temp;
+          }
+      temp = 0.0;
+     }
+
+    printKalmanGain(KGT);
+    printProcessCOV(PC);
+
+    }//QF == 0
+  }//SETUP = True
 
      else if ( SETUP == false && loc.p_pos->qf !=0)
      {
@@ -275,7 +285,8 @@ int main(void)
        X[2][0] = X[2][0] + Ax*dT;
        X[3][0] = X[3][0] + Ay*dT;
        SETUP = true;
-      }
+     } //SETUP = False
+
     else
     {
       printf("Nothing is happening");
@@ -314,9 +325,9 @@ int main(void)
     Y[3][0] = X[3][0];
 
    //Current State Update
- if ( SETUP ) {
+ if (SETUP) {
 
- if (loc.p_pos->qf !=0 ){
+   if (loc.p_pos->qf !=0 ){
       for (i = 0; i < SIZE; i++){
        X[i][0] = CurrentState(X,Y,KG,I,i);
        switch (i){
@@ -489,5 +500,16 @@ void printUpdateProcessCOV(float pc[SIZE][SIZE]){
      }
      printf("\n");
   }
+}
+
+/*void detDistance(int locpx, int loxpy, char anchor){
+  float distance;
+  switch(anchor) {
+    case01:
+
+    break;
+
+  }*/
+
 
 }
