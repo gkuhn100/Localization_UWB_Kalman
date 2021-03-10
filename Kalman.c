@@ -112,6 +112,7 @@ int main(void)
    float R[SIZE][SIZE] = { {20,0,0,0},{0,20,0,0}, {0,0,15,0},{0,0,0,15}  };  // measurment error Matrix
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
+   float PCT[SIZE][SIZE]  = { {0,0,0,0},{0,40,0,0},{0,0,0,0}, {0,0,0,0} }; // Process Covariance Matrix
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
@@ -220,6 +221,7 @@ int main(void)
              }
           }
 
+     if ( loc.p_pos->qf != 0 ){
           // processCOVaraince
         for ( i = 0; i < SIZE; i++) {
            for ( j = 0; j < SIZE; j++) {
@@ -242,8 +244,8 @@ int main(void)
    	  }
     }
        temp = 0.0;
-     } // QF
-
+     }
+ } //QF
       printf("\n\n");
       printProcessCOV(PC);
 
@@ -312,7 +314,7 @@ int main(void)
     Y[3][0] = X[3][0];
 
    //Current State Update
- if ( time > 0 ) {
+ if ( SETUP ) {
 
  if (loc.p_pos->qf !=0 ){
       for (i = 0; i < SIZE; i++){
@@ -359,15 +361,16 @@ int main(void)
       }
    }
 
-
      printf("\n\n");
      /* Updated Process Covariance
      */
+     if ( loc.p_pos->qf != 0 ){
   for (i = 0; i < SIZE; i++){
       PC[i][i] = updateCOV(PC, KG, i);
        }
       printUpdateProcessCOV(PC);
-    }//time
+    }//QF
+  }//Time
       time = time + 1;
   }// while loop
    return(0);
