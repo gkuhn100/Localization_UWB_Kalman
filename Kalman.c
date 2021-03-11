@@ -113,7 +113,6 @@ int main(void)
    float R[SIZE][SIZE] = { {20,0,0,0},{0,20,0,0}, {0,0,15,0},{0,0,0,15}  };  // measurment error Matrix
    float X[ROW][COL]  = { {0},{0},{0},{0} };	         // State Matrix
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
-   float PCT[SIZE][SIZE]  = { {0,0,0,0},{0,40,0,0},{0,0,0,0}, {0,0,0,0} }; // Process Covariance Matrix
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
@@ -199,6 +198,7 @@ int main(void)
       if(dwm_loc_get(&loc) == RV_OK )
          {
 
+
     if (SETUP) {
 
         for (i = 0; i < SIZE; i++){
@@ -249,7 +249,6 @@ int main(void)
 
       printf("\n\n");
       printProcessCOV(PC);
-
        // Kalman Gain
       printf("\n");
 
@@ -260,19 +259,14 @@ int main(void)
       }//QF
   else
   {
-  	for (i=0; i< SIZE; i++){
-	  KGT[i][i] = 0.0;
- 	   }
 
-     for ( i = 0; i < SIZE; i++) {
-        for ( j = 0; j < SIZE; j++) {
-           temp = processCOV(A, PCT, AT, Q, i, j);
-           PC[i][j] = temp;
-          }
-      temp = 0.0;
-     }
+    for (i = 0; i < SIZE; i++){
+	 KGT[i][i] = 0.0;
+ 	       }
+
 
     printKalmanGain(KGT);
+    printf("\n\n");
     printProcessCOV(PC);
 
     }//QF == 0
@@ -287,10 +281,7 @@ int main(void)
        SETUP = true;
      } //SETUP = False
 
-    else
-    {
-      printf("Nothing is happening");
-    }
+
 
   HAL_Print("\nThe measured  position of the Bridge node is\n");
   HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
@@ -327,7 +318,7 @@ int main(void)
    //Current State Update
  if (SETUP) {
 
-   if (loc.p_pos->qf !=0 ){
+   if (loc.p_pos->qf != 0 ){
       for (i = 0; i < SIZE; i++){
        X[i][0] = CurrentState(X,Y,KG,I,i);
        switch (i){
@@ -348,7 +339,7 @@ int main(void)
           }
         }
         for (i = 0; i < SIZE; i++){
-            PC[i][i] = 0.0;
+            PC[i][i] = updateCOV(PC,KG,i);
              }
             printUpdateProcessCOV(PC);
 
@@ -375,10 +366,8 @@ int main(void)
         printf("Error\n");
         }
       }
-      for (i = 0; i < SIZE; i++){
-          PCT[i][i] = 0.0;
-           }
-          printUpdateProcessCOV(PCT);
+         printf("\n");
+         printUpdateProcessCOV(PC);
    }//QF
 
      printf("\n\n");
@@ -502,16 +491,4 @@ void printUpdateProcessCOV(float pc[SIZE][SIZE]){
      }
      printf("\n");
   }
-}
-
-/*void detDistance(int locpx, int loxpy, char anchor){
-  float distance;
-  switch(anchor) {
-    case01:
-
-    break;
-
-  }*/
-
-
 }
