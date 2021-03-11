@@ -465,7 +465,7 @@ void printUpdateProcessCOV(float pc[SIZE][SIZE]){
     for (j = 0; j < SIZE; j++){
       printf("%.3f ", pc[i][j]);
      }
-     printf("\n");
+     printf("\n"); 
   }
 }
 
