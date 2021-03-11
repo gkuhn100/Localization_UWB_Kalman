@@ -49,7 +49,7 @@ float updateCOV(float[SIZE][SIZE], float[SIZE][SIZE], int);
 void printKalmanGain(float[SIZE][SIZE]);
 void printProcessCOV(float[SIZE][SIZE]);
 void printUpdateProcessCOV(float[SIZE][SIZE]);
-void detDistance(int, int, char);
+void printAnchorDistance(int, int, char);
 
 /* This function initialzes the registers used by the MPU6050 IMU
 */
@@ -334,7 +334,7 @@ int main(void)
             printUpdateProcessCOV(PC);
           }
 
-          else if ( SETUP == false && loc.p_pos->qf !=0)
+          else if ( SETUP == false && loc.p_pos->qf == 0)
           {
             X[0][0] = loc.p_pos->x * .001;
             X[1][0] = loc.p_pos->y * .001;
@@ -464,4 +464,10 @@ void printUpdateProcessCOV(float pc[SIZE][SIZE]){
      }
      printf("\n");
   }
+}
+
+
+void printAnchorDistance(int posX, int posY, char anchorname){
+printf("Go fuck yourself\n");
+
 }
