@@ -198,8 +198,8 @@ int main(void)
       if(dwm_loc_get(&loc) == RV_OK )
          {
 
-    if (SETUP) {
 
+    if (SETUP) {
         for (i = 0; i < SIZE; i++){
         X[i][0] = predictState(A,X,B,W,Ax,Ay,i);
         switch (i) {
@@ -248,19 +248,19 @@ int main(void)
       printf("\n\n");
       printProcessCOV(PC);
        // Kalman Gain
-      printf("\n");
+      printf("\n\n");
 
       for (i = 0; i < SIZE; i++){
           KG[i][i] = KalmanGain(PC, R, i);
           }
 
-      }//QF
+      }//QF == 1
   else
   {
 
     for (i = 0; i < SIZE; i++){
       	 KGT[i][i] = 0.0;
- 	       }
+ 	  }
 
     printKalmanGain(KGT);
     printf("\n\n");
@@ -274,13 +274,13 @@ int main(void)
      HAL_Print("\nWarning The Bridge node is out of the LOS\n\n");
       }
 
-  else {
+    else{
   HAL_Print("\nThe measured  position of the Bridge node is\n");
   HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
-               loc.p_pos->qf);
-        }
-        HAL_Print("The position of the Anchor nodes are\n\n");
+	      loc.p_pos->qf);
+  	}
 
+        HAL_Print("The position of the Anchor nodes are\n\n");
          for (i = 0; i < loc.anchors.dist.cnt; ++i)
          {
             HAL_Print("\t%u)", i);
@@ -331,11 +331,14 @@ int main(void)
         for (i = 0; i < SIZE; i++){
             PC[i][i] = updateCOV(PC,KG,i);
              }
+	    printf("\n");
             printUpdateProcessCOV(PC);
           }
+    }
 
-          else if ( SETUP == false && loc.p_pos->qf == 0)
-          {
+           if  ( SETUP == false && loc.p_pos->qf != 0)
+
+ 	   {
             X[0][0] = loc.p_pos->x * .001;
             X[1][0] = loc.p_pos->y * .001;
             X[2][0] = X[2][0] + Ax*dT;
@@ -345,7 +348,7 @@ int main(void)
 
      printf("\n\n");
 
-   }//bridge located
+
       time = time + 1;
   }// while loop
    return(0);
