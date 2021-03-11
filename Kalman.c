@@ -198,7 +198,6 @@ int main(void)
       if(dwm_loc_get(&loc) == RV_OK )
          {
 
-
     if (SETUP) {
 
         for (i = 0; i < SIZE; i++){
@@ -238,7 +237,6 @@ int main(void)
    	           if (i == j){
    		         PC[i][j] = temp;
    		     }
-
     	else
       {
    	    PC[i][j] = 0.0;
@@ -261,9 +259,8 @@ int main(void)
   {
 
     for (i = 0; i < SIZE; i++){
-	 KGT[i][i] = 0.0;
+      	 KGT[i][i] = 0.0;
  	       }
-
 
     printKalmanGain(KGT);
     printf("\n\n");
@@ -272,23 +269,16 @@ int main(void)
     }//QF == 0
   }//SETUP = True
 
-     else if ( SETUP == false && loc.p_pos->qf !=0)
-     {
-       X[0][0] = loc.p_pos->x * .001;
-       X[1][0] = loc.p_pos->y * .001;
-       X[2][0] = X[2][0] + Ax*dT;
-       X[3][0] = X[3][0] + Ay*dT;
-       SETUP = true;
-     } //SETUP = False
 
+  if (loc.p_pos->qf == 0){
+     HAL_Print("\nWarning The Bridge node is out of the LOS\n\n");
+      }
 
-
+  else {
   HAL_Print("\nThe measured  position of the Bridge node is\n");
   HAL_Print("[%d,%d,%d,%u]\n\n", loc.p_pos->x, loc.p_pos->y, loc.p_pos->z,
                loc.p_pos->qf);
-   if (loc.p_pos->qf == 0){
-   HAL_Print("\nWarning The Bridge node is out of the LOS\n\n");
-   }
+        }
         HAL_Print("The position of the Anchor nodes are\n\n");
 
          for (i = 0; i < loc.anchors.dist.cnt; ++i)
@@ -342,37 +332,20 @@ int main(void)
             PC[i][i] = updateCOV(PC,KG,i);
              }
             printUpdateProcessCOV(PC);
+          }
 
-    }
-
-  else
-  {
-    for (i = 0; i < SIZE; i++){
-     X[i][0] = CurrentState(X,Y,KGT,I,i);
-     switch (i){
-       case 0:
-         printf("The updated position in the X-direction is %.3lf Meters\n", X[i][0]);
-         break;
-       case 1:
-         printf("The updated position in the Y-direction is %.3lf Meters\n", X[i][0]);
-         break;
-      case 2:
-         printf("The updated X-velocity is %.3lf m/s \n", X[i][0]);
-         break;
-      case 3:
-        printf("The updated Y-velocity is  %.3lf m/s \n", X[i][0]);
-        break;
-      default:
-        printf("Error\n");
-        }
-      }
-         printf("\n");
-         printUpdateProcessCOV(PC);
-   }//QF
+          else if ( SETUP == false && loc.p_pos->qf !=0)
+          {
+            X[0][0] = loc.p_pos->x * .001;
+            X[1][0] = loc.p_pos->y * .001;
+            X[2][0] = X[2][0] + Ax*dT;
+            X[3][0] = X[3][0] + Ay*dT;
+            SETUP = true;
+          } //SETUP = False
 
      printf("\n\n");
 
-    }//Time
+   }//bridge located
       time = time + 1;
   }// while loop
    return(0);
