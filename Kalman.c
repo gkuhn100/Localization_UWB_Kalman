@@ -347,7 +347,12 @@ int main(void)
           printf("Error\n");
           }
         }
-      }
+        for (i = 0; i < SIZE; i++){
+            PC[i][i] = 0.0;
+             }
+            printUpdateProcessCOV(PC);
+
+    }
 
   else
   {
@@ -371,20 +376,14 @@ int main(void)
         }
       }
       for (i = 0; i < SIZE; i++){
-          PC[i][i] = updateCOV(PC, KG, i);
+          PCT[i][i] = 0.0;
            }
-          printUpdateProcessCOV(PC);
+          printUpdateProcessCOV(PCT);
    }//QF
 
      printf("\n\n");
-     /* Updated Process Covariance
-     */
 
-  for (i = 0; i < SIZE; i++){
-      PC[i][i] = updateCOV(PC, KG, i);
-       }
-      printUpdateProcessCOV(PC);
-  }//Time
+    }//Time
       time = time + 1;
   }// while loop
    return(0);
