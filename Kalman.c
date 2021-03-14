@@ -283,6 +283,10 @@ int main(void)
         HAL_Print("The position of the Anchor nodes are\n\n");
          for (i = 0; i < loc.anchors.dist.cnt; ++i)
          {
+            j++;
+            if ( j == 2){
+              HAL_Print(" Warning %u\n is Malfunctioning", loc.anchors.dist.dist[i]);
+            }
             HAL_Print("\t%u)", i);
             HAL_Print("0x%llx", loc.anchors.dist.addr[i]);
             if (i < loc.anchors.an_pos.cnt)
