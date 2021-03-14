@@ -115,7 +115,7 @@ int main(void)
    float PC[SIZE][SIZE]  = { {40,0,0,0},{0,40,0,0},{0,0,25,0}, {0,0,0,25} }; // Process Covariance Matrix
    float KG[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
    float KGT[SIZE][SIZE] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };         // Kalman Gain Matrix
-   float Y[ROW][COL] = { {0},{0},{0},{0} };          // Observation matrix
+   float Y[ROW][COL] = { {0.1},{0.1},{0},{0} };          // Observation matrix
    float W[ROW][COL] = { {-.065},{0.018},{-.127},{.037} }; //Error in Prediction
    float Q[ROW][COL] = { {0},{0},{0},{0} };
    float temp = 0.0;
@@ -465,12 +465,28 @@ void printUpdateProcessCOV(float pc[SIZE][SIZE]){
     for (j = 0; j < SIZE; j++){
       printf("%.3f ", pc[i][j]);
      }
-     printf("\n"); 
+     printf("\n");
   }
 }
 
 
 void printAnchorDistance(int posX, int posY, char anchorname){
-printf("Go fuck yourself\n");
+int distance;
+switch (anchorname){
+  case 0:
+      distance = (posX)^2+(posY)^2;
+      distance = sqrt(distance);
+      printf("%d\n",distance);
+      break;
+  case 1:
+      distance = (posX)^2+(posY)^2;
+      distance = sqrt(distance);
+      printf("%d\n",distance);
+      break;
+
+
+
+  }
+
 
 }
